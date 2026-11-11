@@ -16,5 +16,8 @@ opendial_test(test_config unit/test_config.cpp)
 opendial_test(test_profiles unit/test_profiles.cpp)
 opendial_test(test_radial unit/test_radial.cpp)
 opendial_test(test_decoder unit/test_decoder.cpp)
+opendial_test(test_theme unit/test_theme.cpp ${PROJECT_SOURCE_DIR}/src/common/SystemTheme.cpp)
+target_include_directories(test_theme PRIVATE ${PROJECT_SOURCE_DIR}/src/common)
+target_link_libraries(test_theme PRIVATE Qt6::Gui Qt6::DBus)
 
 add_subdirectory(integration)

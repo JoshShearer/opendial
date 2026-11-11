@@ -11,6 +11,7 @@ set(SERVICE_SOURCES
   ${SRC}/context/FocusTrackers.cpp
   ${SRC}/integrations/Integrations.cpp
   ${SRC}/common/IconProvider.cpp
+  ${SRC}/common/SystemTheme.cpp
   ${SRC}/common/icons.qrc
   ActionRunner.cpp
   Engine.cpp

@@ -7,8 +7,15 @@ import QtQuick
 Item {
     id: root
     property var menu: ({ items: [], highlight: 0 })
+    // Colours come from the daemon (SystemTheme: Omarchy theme, portal
+    // light/dark, or the built-in palette); these defaults are the dark one.
     property bool dark: true
+    property color background: "#171a21"
+    property color foreground: "#f2f4f8"
+    property color foregroundDim: Qt.tint(foreground, Qt.rgba(background.r, background.g, background.b, 0.38))
     property color accent: "#4c8dff"
+    property color accentForeground: "#ffffff"
+    property int cornerRadius: 12
     property real panelOpacity: 0.94
     property bool reduceMotion: false
     property bool showHints: true
@@ -21,10 +28,10 @@ Item {
     readonly property real radius: menuSize / 2
     readonly property real ringRadius: radius * 0.68
     readonly property real itemSize: Math.min(radius * 0.42, 2 * Math.PI * ringRadius / Math.max(count, 1) * 0.78)
-    readonly property color fg: dark ? "#f2f4f8" : "#1b1f27"
-    readonly property color fgDim: dark ? "#a8b0bf" : "#5a6272"
-    readonly property color panel: dark ? Qt.rgba(0.09, 0.10, 0.13, panelOpacity) : Qt.rgba(0.97, 0.97, 0.98, panelOpacity)
-    readonly property color ring: dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.06)
+    readonly property color fg: foreground
+    readonly property color fgDim: foregroundDim
+    readonly property color panel: Qt.rgba(background.r, background.g, background.b, panelOpacity)
+    readonly property color ring: Qt.rgba(foreground.r, foreground.g, foreground.b, dark ? 0.07 : 0.06)
 
     width: menuSize
     height: menuSize
@@ -37,7 +44,7 @@ Item {
         anchors.fill: parent
         radius: width / 2
         color: root.panel
-        border.color: root.dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(0, 0, 0, 0.10)
+        border.color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.10)
         border.width: 1
     }
     // item track
@@ -100,13 +107,13 @@ Item {
                 width: parent.width * 0.5
                 height: width
                 sourceSize: Qt.size(width * 2, height * 2)
-                source: "image://opendial/" + (modelData.icon || "custom") + "?color=" + root.hex(parent.hl ? "#ffffff" : root.fg)
+                source: "image://opendial/" + (modelData.icon || "custom") + "?color=" + root.hex(parent.hl ? root.accentForeground : root.fg)
                 smooth: true
             }
             Rectangle { // folder marker
                 visible: modelData.folder === true
                 width: 6; height: 6; radius: 3
-                color: parent.hl ? "#ffffff" : root.fgDim
+                color: parent.hl ? root.accentForeground : root.fgDim
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: parent.height * 0.08

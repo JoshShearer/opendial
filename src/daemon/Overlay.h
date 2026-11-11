@@ -7,6 +7,8 @@
 #include <QPointer>
 #include <QTimer>
 
+#include "SystemTheme.h"
+
 class QQuickView;
 class QScreen;
 
@@ -24,6 +26,7 @@ public:
     ~Overlay() override;
     bool usesLayerShell() const { return m_layerShell; }
     QString placementDetail() const { return m_detail; }
+    SystemTheme *theme() { return &m_theme; }
 
     void showMenu(const QJsonObject &menu);
     void hideMenu();
@@ -33,9 +36,9 @@ private:
     QQuickView *createView(const QString &qml, const QString &scope);
     void applyTheme(QQuickView *v);
     void place(QQuickView *v, QScreen *screen, QPoint topLeftGlobal, bool osd, const QString &position);
-    bool systemDark() const;
 
     Engine *m_engine;
+    SystemTheme m_theme;
     QQuickView *m_menu = nullptr;
     QQuickView *m_osd = nullptr;
     QTimer m_osdTimer;

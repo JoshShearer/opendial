@@ -9,12 +9,10 @@
 #include <QCursor>
 #include <QGuiApplication>
 #include <QLoggingCategory>
-#include <QPalette>
 #include <QQmlEngine>
 #include <QQuickItem>
 #include <QQuickView>
 #include <QScreen>
-#include <QStyleHints>
 
 #ifdef OPENDIAL_HAVE_LAYERSHELL
 #include <LayerShellQt/window.h>
@@ -48,27 +46,18 @@ Overlay::Overlay(Engine *engine, QObject *parent) : QObject(parent), m_engine(en
             hideMenu();
     });
     connect(engine, &Engine::osdRequested, this, &Overlay::showOsd);
+    // A theme switch while the menu or OSD is up recolours it in place.
+    connect(&m_theme, &SystemTheme::changed, this, [this] {
+        qCInfo(lcOverlay) << "theme:" << m_theme.source();
+        applyTheme(m_menu);
+        applyTheme(m_osd);
+    });
 }
 
 Overlay::~Overlay()
 {
     delete m_menu;
     delete m_osd;
-}
-
-bool Overlay::systemDark() const
-{
-    const QString theme = m_engine->settings().value(QStringLiteral("menu")).toObject().value(QStringLiteral("theme")).toString(QStringLiteral("system"));
-    if (theme == QLatin1String("dark"))
-        return true;
-    if (theme == QLatin1String("light"))
-        return false;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-    const auto scheme = QGuiApplication::styleHints()->colorScheme();
-    if (scheme != Qt::ColorScheme::Unknown)
-        return scheme == Qt::ColorScheme::Dark;
-#endif
-    return QGuiApplication::palette().color(QPalette::Window).lightness() < 128;
 }
 
 QQuickView *Overlay::createView(const QString &qml, const QString &scope)
@@ -103,10 +92,19 @@ QQuickView *Overlay::createView(const QString &qml, const QString &scope)
 
 void Overlay::applyTheme(QQuickView *v)
 {
+    if (!v)
+        return;
     const QJsonObject ms = m_engine->settings().value(QStringLiteral("menu")).toObject();
+    const MenuPalette p = m_theme.palette(ms.value(QStringLiteral("theme")).toString(QStringLiteral("system")),
+                                          ms.value(QStringLiteral("accent")).toString(QStringLiteral("system")));
     if (auto *r = v->rootObject()) {
-        r->setProperty("dark", systemDark());
-        r->setProperty("accent", QColor(ms.value(QStringLiteral("accent")).toString(QStringLiteral("#4c8dff"))));
+        r->setProperty("dark", p.dark);
+        r->setProperty("background", p.background);
+        r->setProperty("foreground", p.foreground);
+        r->setProperty("foregroundDim", p.foregroundDim);
+        r->setProperty("accent", p.accent);
+        r->setProperty("accentForeground", p.accentForeground);
+        r->setProperty("cornerRadius", p.radius);
         r->setProperty("panelOpacity", qBound(0.3, ms.value(QStringLiteral("opacity")).toDouble(0.94), 1.0));
     }
 }

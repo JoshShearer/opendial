@@ -223,8 +223,12 @@ Item {
                             id: preview
                             anchors.centerIn: parent
                             menuSize: 340
-                            dark: Material.theme === Material.Dark
-                            accent: Material.accent
+                            dark: win.pal.dark
+                            background: win.pal.background
+                            foreground: win.pal.foreground
+                            foregroundDim: win.pal.foregroundDim
+                            accent: win.pal.accent
+                            accentForeground: win.pal.accentForeground
                             menu: ({ items: page.previewItems, highlight: Math.min(page.previewHighlight, page.previewItems.length - 1), breadcrumb: page.profile.name, pageCount: 1, page: 0 })
                         }
                         MouseArea {
@@ -290,20 +294,43 @@ Item {
                         label: qsTr("Accent colour")
                         Row {
                             spacing: 6
+                            readonly property string current: backend.get("settings.menu.accent") || "system"
                             Repeater {
-                                model: ["#4c8dff", "#7c5cff", "#e0527a", "#f08c2e", "#2fb37b", "#16a2b8", "#8a8f98"]
+                                // "system" follows the desktop accent (Omarchy theme, GNOME/KDE accent)
+                                model: ["system", "#4c8dff", "#7c5cff", "#e0527a", "#f08c2e", "#2fb37b", "#16a2b8", "#8a8f98"]
                                 delegate: Rectangle {
                                     required property string modelData
+                                    readonly property bool isSystem: modelData === "system"
                                     width: 26; height: 26; radius: 13
-                                    color: modelData
-                                    border.width: (backend.get("settings.menu.accent") || "#4c8dff") === modelData ? 3 : 0
+                                    color: isSystem ? win.pal.accent : modelData
+                                    border.width: parent.current === modelData ? 3 : 0
                                     border.color: Material.foreground
+                                    Label {
+                                        visible: parent.isSystem
+                                        anchors.centerIn: parent
+                                        text: "A"
+                                        font.pixelSize: 12
+                                        font.bold: true
+                                        color: win.pal.accentForeground
+                                    }
                                     MouseArea { anchors.fill: parent; onClicked: backend.set("settings.menu.accent", parent.modelData) }
-                                    Accessible.name: modelData
+                                    ToolTip.visible: isSystem && hover.hovered
+                                    ToolTip.text: qsTr("Follow the system accent")
+                                    HoverHandler { id: hover }
+                                    Accessible.name: isSystem ? qsTr("System accent") : modelData
                                     Accessible.role: Accessible.Button
                                 }
                             }
                         }
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.WordWrap
+                        opacity: 0.6
+                        font.pixelSize: 12
+                        text: win.pal.source === "omarchy" ? qsTr("Following the Omarchy theme.")
+                            : win.pal.source === "portal" ? qsTr("Following the desktop's light/dark setting.")
+                            : qsTr("Using the built-in colours.")
                     }
                     SettingSlider { label: qsTr("Opacity"); path: "settings.menu.opacity"; from: 0.5; to: 1; stepSize: 0.02; decimals: 2; defaultValue: 0.94 }
                 }

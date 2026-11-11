@@ -2,6 +2,7 @@
 // OpenDial settings app.
 #include "Backend.h"
 #include "IconProvider.h"
+#include "SystemTheme.h"
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -79,6 +80,8 @@ int main(int argc, char **argv)
     QQmlApplicationEngine engine;
     engine.addImageProvider(QStringLiteral("opendial"), new opendial::IconProvider);
     engine.rootContext()->setContextProperty(QStringLiteral("backend"), &backend);
+    opendial::SystemTheme systemTheme;
+    engine.rootContext()->setContextProperty(QStringLiteral("systemTheme"), &systemTheme);
     engine.setInitialProperties({{QStringLiteral("initialPage"), p.value(page)}});
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
     engine.load(QUrl(QStringLiteral("qrc:/opendial/ui/Main.qml")));

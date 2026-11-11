@@ -5,6 +5,7 @@ add_executable(opendial
   Backend.cpp
   ${SRC}/inject/Keymap.cpp
   ${SRC}/common/IconProvider.cpp
+  ${SRC}/common/SystemTheme.cpp
   ${SRC}/common/icons.qrc
   ui.qrc)
 target_include_directories(opendial PRIVATE ${SRC}/inject ${SRC}/common)

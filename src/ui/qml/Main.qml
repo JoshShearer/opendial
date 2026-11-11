@@ -15,9 +15,17 @@ ApplicationWindow {
     title: qsTr("OpenDial")
 
     readonly property string themeSetting: backend.get("settings.menu.theme") || "system"
-    Material.theme: themeSetting === "dark" ? Material.Dark : themeSetting === "light" ? Material.Light : Material.System
-    Material.accent: backend.get("settings.menu.accent") || "#4c8dff"
+    readonly property string accentSetting: backend.get("settings.menu.accent") || "system"
+    // Same colours as the menu: the Omarchy theme, the portal's light/dark and
+    // accent, or the built-in palette. `revision` re-evaluates on a switch.
+    readonly property var pal: systemTheme.revision, systemTheme.paletteFor(themeSetting, accentSetting)
+    readonly property bool omarchy: pal.source === "omarchy"
+    Material.theme: pal.dark ? Material.Dark : Material.Light
+    Material.accent: pal.accent
     Material.primary: Material.accent
+    Material.background: omarchy ? pal.background : undefined
+    Material.foreground: omarchy ? pal.foreground : undefined
+    color: Material.backgroundColor
 
     property int page: 0
     property string initialPage: ""

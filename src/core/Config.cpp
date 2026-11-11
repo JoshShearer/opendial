@@ -203,6 +203,15 @@ ValidationResult validateConfig(const QJsonObject &c)
     range(menu, "detentDegrees", QStringLiteral("settings.menu"), 5, 90);
     range(menu, "size", QStringLiteral("settings.menu"), 200, 900);
     range(menu, "opacity", QStringLiteral("settings.menu"), 0.3, 1.0);
+    static const QStringList themes = {QStringLiteral("system"), QStringLiteral("dark"), QStringLiteral("light")};
+    if (menu.contains(QLatin1String("theme")) && !themes.contains(menu.value(QLatin1String("theme")).toString()))
+        is.append({QStringLiteral("settings.menu.theme"), QStringLiteral("theme must be system/dark/light"), false});
+    if (menu.contains(QLatin1String("accent"))) {
+        static const QRegularExpression hex(QStringLiteral("^#[0-9A-Fa-f]{6}$"));
+        const QString a = menu.value(QLatin1String("accent")).toString();
+        if (a != QLatin1String("system") && !hex.match(a).hasMatch())
+            is.append({QStringLiteral("settings.menu.accent"), QStringLiteral("accent must be \"system\" or #RRGGBB"), false});
+    }
     static const QStringList placements = {QStringLiteral("pointer"), QStringLiteral("center"), QStringLiteral("saved"), QStringLiteral("display")};
     if (menu.contains(QLatin1String("placement")) && !placements.contains(menu.value(QLatin1String("placement")).toString()))
         is.append({QStringLiteral("settings.menu.placement"), QStringLiteral("placement must be pointer/center/saved/display"), false});
@@ -272,7 +281,22 @@ MigrationResult migrateConfig(const QJsonObject &input)
         r.changed = true;
         v = 1;
     }
-    // Future: if (v == 1) { ...; v = 2; }
+    if (v == 1) {
+        // v2: the menu follows the desktop accent by default. v1 wrote the old
+        // built-in blue into every config, so that value means "never chosen".
+        QJsonObject settings = c.value(QLatin1String("settings")).toObject();
+        QJsonObject menu = settings.value(QLatin1String("menu")).toObject();
+        if (menu.value(QLatin1String("accent")).toString().compare(QLatin1String("#4c8dff"), Qt::CaseInsensitive) == 0) {
+            menu.insert(QStringLiteral("accent"), QStringLiteral("system"));
+            settings.insert(QStringLiteral("menu"), menu);
+            c.insert(QStringLiteral("settings"), settings);
+            r.log << QStringLiteral("migrated v1 -> v2: menu accent follows the system theme");
+        }
+        c.insert(QStringLiteral("version"), 2);
+        r.changed = true;
+        v = 2;
+    }
+    // Future: if (v == 2) { ...; v = 3; }
     const auto merged = mergeDefaults(QJsonObject{{QStringLiteral("settings"), defaultSettings()}}, c);
     if (merged != c)
         r.changed = true;

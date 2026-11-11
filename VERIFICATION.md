@@ -10,20 +10,21 @@ replayed input is never reported as hardware success (SRS §17.6).
 Environment: Omarchy (Arch-based), kernel 7.2.15, GCC 16.2.1, CMake 4.4.4,
 Qt 6.12. Ran `QT_QPA_PLATFORM=offscreen ctest --test-dir build`.
 
-**Result: 12/12 suites pass.**
+**Result: 13/13 suites pass.**
 
 Unit suites (86 test functions):
 
 | Suite | Tests | Covers |
 |---|---|---|
 | test_actions | 7 | action validation, fingerprints, risk classes, macro limits |
-| test_config | 14 | defaults, validation, migration, atomic writes, backups, multi-level rollback, symlink refusal, corrupt/invalid/newer handling, import/export |
+| test_config | 16 | defaults, validation, migration, atomic writes, backups, multi-level rollback, symlink refusal, corrupt/invalid/newer handling, import/export |
 | test_decoder | 7 | evdev framing, SYN_DROPPED, connect guard, HID report decode, fixture parsing |
 | test_gesture | 17 | click / double / long press / hold-rotate / latch / debounce |
 | test_keychord | 7 | chord and sequence parsing, layouts |
 | test_profiles | 13 | matching, precedence, Flatpak IDs, folders, menu composition |
 | test_radial | 10 | ring layout, paging, wrap, highlight |
 | test_rotation | 11 | stepping, coalescing, acceleration, haptics policy, report encoding |
+| test_theme | 7 | Omarchy colors.toml parsing, palette resolution (system/forced light/dark, accent), WCAG text on accent, live theme switch through a replaced symlink (watcher re-armed) |
 
 Integration suites (each runs on a private bus, `dbus-run-session`):
 
@@ -61,6 +62,11 @@ The Ubuntu run found a real bug, fixed in b5b80db. As root with
   - Simulated input: +30°, −20°, click. The file contained `aaaBB\n` (`zwp_virtual_keyboard_v1`, layout read from Hyprland).
   - This run found and fixed a bug: Hyprland reports unset keyboard options as `[[EMPTY]]`, which broke the keymap, so all key injection on Hyprland failed.
   - Pointer/scroll delivery (`zwlr_virtual_pointer_v1`) is advertised but not yet observed.
+
+### System theme (nested Hyprland on the reference machine)
+
+- With the Omarchy theme active, the radial menu, the OSD and the settings app took the theme's background, foreground and accent (`#b59790`); the highlighted icon is drawn in the theme background, which has more contrast on that accent. Forcing `settings.menu.theme = light` switched the menu to the light palette. Screenshots were checked by eye.
+- The GNOME/KDE path (portal `org.freedesktop.appearance`) is implemented but has not been run on those desktops.
 
 ### Performance (reference machine, dry run, overlay on)
 

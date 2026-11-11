@@ -4,7 +4,7 @@
 - **Context:** The SRS asks for strict validation, explicit versions, migrations, rollback, no silent destructive migration, and import/export.
 - **Decision:**
   - Storage:
-    - `~/.config/opendial/config.json` with `{"schema":"opendial.config","version":1}`.
+    - `~/.config/opendial/config.json` with `{"schema":"opendial.config","version":2}` (v2: `settings.menu.accent` may be `"system"`; the v1 default blue migrates to it, a colour the user picked stays).
     - Runtime state lives separately in `~/.local/state/opendial/state.json`.
     - Profiles are exchanged as `{"schema":"opendial.profile","version":1,"profile":{…}}`.
   - Writing:

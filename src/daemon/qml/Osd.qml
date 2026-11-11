@@ -6,10 +6,15 @@ Item {
     id: root
     property var osd: ({})
     property bool dark: true
+    property color background: "#171a21"
+    property color foreground: "#f2f4f8"
+    property color foregroundDim: Qt.tint(foreground, Qt.rgba(background.r, background.g, background.b, 0.38))
     property color accent: "#4c8dff"
+    property color accentForeground: "#ffffff"
+    property int cornerRadius: 12   // follows the compositor's window rounding (0 on Omarchy)
     property real panelOpacity: 0.94
-    readonly property color fg: dark ? "#f2f4f8" : "#1b1f27"
-    readonly property color fgDim: dark ? "#a8b0bf" : "#5a6272"
+    readonly property color fg: foreground
+    readonly property color fgDim: foregroundDim
     readonly property bool hasValue: osd && osd.value !== undefined
     width: 320
     height: 76
@@ -18,21 +23,21 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: height / 2
-        color: root.dark ? Qt.rgba(0.09, 0.10, 0.13, root.panelOpacity) : Qt.rgba(0.97, 0.97, 0.98, root.panelOpacity)
-        border.color: root.dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(0, 0, 0, 0.10)
+        radius: Math.min(height / 2, root.cornerRadius)
+        color: Qt.rgba(root.background.r, root.background.g, root.background.b, root.panelOpacity)
+        border.color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.10)
     }
     Rectangle {
         id: badge
         x: 14
         anchors.verticalCenter: parent.verticalCenter
-        width: 48; height: 48; radius: 24
+        width: 48; height: 48; radius: Math.min(24, root.cornerRadius)
         color: root.accent
         Image {
             anchors.centerIn: parent
             width: 26; height: 26
             sourceSize: Qt.size(52, 52)
-            source: "image://opendial/" + (root.osd.icon || "dial") + "?color=ffffff"
+            source: "image://opendial/" + (root.osd.icon || "dial") + "?color=" + root.hex(root.accentForeground)
         }
     }
     Column {
@@ -63,12 +68,12 @@ Item {
             visible: root.hasValue
             width: parent.width
             height: 6
-            radius: 3
-            color: root.dark ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.10)
+            radius: Math.min(3, root.cornerRadius)
+            color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, root.dark ? 0.12 : 0.10)
             Rectangle {
                 width: parent.width * Math.max(0, Math.min(1, root.osd.value || 0))
                 height: parent.height
-                radius: 3
+                radius: parent.radius
                 color: root.osd.muted ? root.fgDim : root.accent
                 Behavior on width { NumberAnimation { duration: 90 } }
             }

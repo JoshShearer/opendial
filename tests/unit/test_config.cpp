@@ -75,10 +75,52 @@ private Q_SLOTS:
         auto r = migrateConfig(v0);
         QVERIFY(r.ok);
         QVERIFY(r.changed);
-        QCOMPARE(r.config.value("version").toInt(), 1);
+        QCOMPARE(r.config.value("version").toInt(), kConfigVersion);
         QCOMPARE(r.config.value("customKey").toString(), QStringLiteral("preserved"));
         QVERIFY(validateConfig(r.config).ok());
         QCOMPARE(globalTools(r.config).first().toObject().value("id").toString(), QStringLiteral("vol"));
+    }
+
+    void migrateV1AccentFollowsSystem()
+    {
+        auto v1 = defaultConfig();
+        v1.insert("version", 1);
+        auto settings = v1.value("settings").toObject();
+        auto menu = settings.value("menu").toObject();
+        menu.insert("accent", "#4C8DFF"); // the old default, as v1 wrote it
+        settings.insert("menu", menu);
+        v1.insert("settings", settings);
+        auto r = migrateConfig(v1);
+        QVERIFY(r.ok);
+        QVERIFY(r.changed);
+        QCOMPARE(r.config.value("version").toInt(), 2);
+        QCOMPARE(r.config.value("settings").toObject().value("menu").toObject().value("accent").toString(), QStringLiteral("system"));
+
+        // a colour the user picked stays
+        menu.insert("accent", "#e0527a");
+        settings.insert("menu", menu);
+        v1.insert("settings", settings);
+        r = migrateConfig(v1);
+        QCOMPARE(r.config.value("settings").toObject().value("menu").toObject().value("accent").toString(), QStringLiteral("#e0527a"));
+    }
+
+    void menuThemeValidation()
+    {
+        auto set = [](const char *key, const QString &val) {
+            auto c = defaultConfig();
+            auto settings = c.value("settings").toObject();
+            auto menu = settings.value("menu").toObject();
+            menu.insert(key, val);
+            settings.insert("menu", menu);
+            c.insert("settings", settings);
+            return validateConfig(c).ok();
+        };
+        QVERIFY(set("accent", "system"));
+        QVERIFY(set("accent", "#b59790"));
+        QVERIFY(!set("accent", "red"));
+        QVERIFY(!set("accent", "#12345"));
+        QVERIFY(set("theme", "light"));
+        QVERIFY(!set("theme", "purple"));
     }
 
     void refusesNewer()

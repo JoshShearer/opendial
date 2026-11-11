@@ -1,6 +1,6 @@
 {
   "schema": "opendial.config",
-  "version": 1,
+  "version": 2,
   "settings": {
     "gestures": {
       "longPressMs": 500,
@@ -23,7 +23,7 @@
       "showHints": true,
       "size": 360,
       "theme": "system",
-      "accent": "#4c8dff",
+      "accent": "system",
       "opacity": 0.94,
       "reduceMotion": false,
       "wrap": true
