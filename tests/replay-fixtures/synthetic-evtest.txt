@@ -1,0 +1,15 @@
+Input driver version is 1.0.1
+Input device ID: bus 0x5 vendor 0x45e product 0x91b version 0x108
+Input device name: "Surface Dial System Multi Axis"
+Testing ... (interrupt to exit)
+Event: time 1700000000.100000, type 2 (EV_REL), code 7 (REL_DIAL), value 10
+Event: time 1700000000.100000, -------------- SYN_REPORT ------------
+Event: time 1700000000.110000, type 2 (EV_REL), code 7 (REL_DIAL), value 10
+Event: time 1700000000.110000, -------------- SYN_REPORT ------------
+Event: time 1700000000.120000, type 2 (EV_REL), code 7 (REL_DIAL), value 999
+Event: time 1700000000.120000, type 0 (EV_SYN), code 3 (SYN_DROPPED), value 0
+Event: time 1700000000.130000, type 2 (EV_REL), code 7 (REL_DIAL), value 999
+Event: time 1700000000.130000, -------------- SYN_REPORT ------------
+Event: time 1700000000.140000, type 2 (EV_REL), code 7 (REL_DIAL), value -5
+Event: time 1700000000.140000, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1
+Event: time 1700000000.140000, -------------- SYN_REPORT ------------

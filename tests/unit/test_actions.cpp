@@ -1,0 +1,103 @@
+// SPDX-License-Identifier: MIT
+#include "Action.h"
+
+#include <QtTest>
+
+using namespace opendial;
+
+namespace {
+bool valid(const QJsonObject &a)
+{
+    ValidationIssues is;
+    validateAction(a, QStringLiteral("a"), is);
+    for (const auto &i : is)
+        if (!i.warning)
+            return false;
+    return true;
+}
+} // namespace
+
+class TestActions : public QObject {
+    Q_OBJECT
+private Q_SLOTS:
+    void validActions()
+    {
+        QVERIFY(valid({{"type", "key"}, {"keys", "Ctrl+Z"}}));
+        QVERIFY(valid({{"type", "volume"}, {"delta", 2}}));
+        QVERIFY(valid({{"type", "scroll"}, {"axis", "horizontal"}, {"amount", -1}}));
+        QVERIFY(valid({{"type", "media"}, {"command", "seek"}, {"offsetMs", 5000}}));
+        QVERIFY(valid({{"type", "command"}, {"argv", QJsonArray{"notify-send", "hi"}}}));
+        QVERIFY(valid({{"type", "launch"}, {"url", "https://example.org"}}));
+        QVERIFY(valid({{"type", "osc"}, {"host", "127.0.0.1"}, {"port", 9000}, {"address", "/dial"}}));
+        QVERIFY(valid({{"type", "macro"}, {"steps", QJsonArray{QJsonObject{{"action", QJsonObject{{"type", "key"}, {"keys", "a"}}}}, QJsonObject{{"delayMs", 50}}}}}));
+        QVERIFY(valid({{"type", "value"}, {"variable", "brush"}, {"step", 1}, {"min", 0}, {"max", 100}}));
+        QVERIFY(valid({{"type", "if"}, {"condition", QJsonObject{{"appId", QJsonArray{"krita"}}}}, {"then", QJsonObject{{"type", "none"}}}}));
+    }
+
+    void invalidActions()
+    {
+        QVERIFY(!valid({{"type", "bogus"}}));
+        QVERIFY(!valid({{"keys", "a"}}));
+        QVERIFY(!valid({{"type", "key"}, {"keys", "Ctrl+Nope"}}));
+        QVERIFY(!valid({{"type", "volume"}}));
+        QVERIFY(!valid({{"type", "volume"}, {"delta", 500}}));
+        QVERIFY(!valid({{"type", "command"}, {"argv", "rm -rf ~"}})); // shell strings rejected
+        QVERIFY(!valid({{"type", "launch"}, {"url", "file:///etc/passwd"}}));
+        QVERIFY(!valid({{"type", "launch"}, {"url", "https://x"}, {"path", "/bin/sh"}}));
+        QVERIFY(!valid({{"type", "osc"}, {"host", "h"}, {"port", 1}, {"address", "nope"}}));
+        QVERIFY(!valid({{"type", "value"}, {"variable", "1bad"}, {"step", 1}}));
+        QVERIFY(!valid({{"type", "macro"}, {"steps", QJsonArray{QJsonObject{{"delayMs", 9000}}, QJsonObject{{"delayMs", 9000}}}}, {"repeat", 2}}));
+    }
+
+    void depthBounded()
+    {
+        QJsonObject a{{"type", "none"}};
+        for (int i = 0; i < 8; ++i)
+            a = QJsonObject{{"type", "macro"}, {"steps", QJsonArray{QJsonObject{{"action", a}}}}};
+        QVERIFY(!valid(a));
+    }
+
+    void risk()
+    {
+        QCOMPARE(actionRisk({{"type", "key"}, {"keys", "a"}}), Risk::Safe);
+        QCOMPARE(actionRisk({{"type", "command"}, {"argv", QJsonArray{"x"}}}), Risk::NeedsApproval);
+        QCOMPARE(actionRisk({{"type", "dbus"}}), Risk::NeedsApproval);
+        QCOMPARE(actionRisk({{"type", "launch"}, {"url", "https://a"}}), Risk::NeedsApproval);
+        QCOMPARE(actionRisk({{"type", "osc"}, {"host", "127.0.0.1"}}), Risk::Safe);
+        QCOMPARE(actionRisk({{"type", "osc"}, {"host", "10.0.0.5"}}), Risk::NeedsApproval);
+        const QJsonObject nested{{"type", "macro"}, {"steps", QJsonArray{QJsonObject{{"action", QJsonObject{{"type", "command"}, {"argv", QJsonArray{"x"}}}}}}}};
+        QCOMPARE(actionRisk(nested), Risk::NeedsApproval);
+        QCOMPARE(actionRisk({{"type", "if"}, {"then", QJsonObject{{"type", "launch"}, {"desktopId", "x"}}}}), Risk::NeedsApproval);
+    }
+
+    void fingerprintStableAndSensitive()
+    {
+        QJsonObject a{{"type", "command"}, {"argv", QJsonArray{"echo", "1"}}};
+        QJsonObject b{{"argv", QJsonArray{"echo", "1"}}, {"type", "command"}};
+        QCOMPARE(actionFingerprint(a), actionFingerprint(b));
+        QJsonObject c{{"type", "command"}, {"argv", QJsonArray{"echo", "2"}}};
+        QVERIFY(actionFingerprint(a) != actionFingerprint(c));
+        QCOMPARE(actionFingerprint(a).size(), 64);
+    }
+
+    void collectRisky()
+    {
+        QJsonObject profile{{"tools", QJsonArray{QJsonObject{{"id", "t"}, {"bindings", QJsonObject{
+            {"click", QJsonObject{{"type", "command"}, {"argv", QJsonArray{"x"}}}},
+            {"rotate_cw", QJsonObject{{"type", "key"}, {"keys", "a"}}}}}}}}};
+        QList<QPair<QString, QJsonObject>> out;
+        collectRiskyActions(profile, QStringLiteral("p"), out);
+        QCOMPARE(out.size(), 1);
+        QCOMPARE(out.first().first, QStringLiteral("p.tools[0].bindings.click"));
+    }
+
+    void describe()
+    {
+        QCOMPARE(describeAction({{"type", "key"}, {"keys", "ctrl+z"}}), QStringLiteral("Key Ctrl+Z"));
+        QCOMPARE(describeAction({{"type", "volume"}, {"delta", 2}}), QStringLiteral("Volume +2%"));
+        QCOMPARE(describeAction({}), QStringLiteral("Nothing"));
+    }
+};
+
+QTEST_GUILESS_MAIN(TestActions)
+#include "test_actions.moc"

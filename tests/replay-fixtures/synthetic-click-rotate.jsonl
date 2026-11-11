@@ -1,0 +1,27 @@
+# synthetic: units are REL_DIAL at the kernel default resolution (3600/turn => 0.1 deg/unit)
+{"connect":true,"t":0}
+{"t":2000000,"type":1,"code":256,"value":1}
+{"t":2000000,"type":0,"code":0,"value":0}
+{"t":2100000,"type":1,"code":256,"value":0}
+{"t":2100000,"type":0,"code":0,"value":0}
+{"t":3000000,"type":2,"code":7,"value":100}
+{"t":3000000,"type":0,"code":0,"value":0}
+{"t":3050000,"type":2,"code":7,"value":100}
+{"t":3050000,"type":0,"code":0,"value":0}
+{"t":3100000,"type":2,"code":7,"value":100}
+{"t":3100000,"type":0,"code":0,"value":0}
+{"t":3500000,"type":2,"code":7,"value":-100}
+{"t":3500000,"type":0,"code":0,"value":0}
+{"t":3550000,"type":2,"code":7,"value":-100}
+{"t":3550000,"type":0,"code":0,"value":0}
+{"t":5000000,"type":1,"code":256,"value":1}
+{"t":5000000,"type":0,"code":0,"value":0}
+{"t":5800000,"type":1,"code":256,"value":0}
+{"t":5800000,"type":0,"code":0,"value":0}
+{"t":7000000,"type":1,"code":256,"value":1}
+{"t":7000000,"type":0,"code":0,"value":0}
+{"t":7100000,"type":2,"code":7,"value":150}
+{"t":7100000,"type":0,"code":0,"value":0}
+{"t":7200000,"type":1,"code":256,"value":0}
+{"t":7200000,"type":0,"code":0,"value":0}
+{"disconnect":true,"t":8000000}

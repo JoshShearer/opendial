@@ -1,0 +1,5 @@
+file(GLOB OPENDIAL_CORE_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+add_library(opendialcore STATIC ${OPENDIAL_CORE_SOURCES} core.qrc)
+target_include_directories(opendialcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(opendialcore PUBLIC Qt6::Core Qt6::Network PkgConfig::XKBCOMMON)
+set_target_properties(opendialcore PROPERTIES POSITION_INDEPENDENT_CODE ON)

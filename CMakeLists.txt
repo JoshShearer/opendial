@@ -1,0 +1,99 @@
+cmake_minimum_required(VERSION 3.22)
+project(OpenDial VERSION 0.9.0 LANGUAGES C CXX
+        DESCRIPTION "Surface Dial driver service, radial menu and configuration suite for Linux")
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+include(GNUInstallDirs)
+
+option(OPENDIAL_BUILD_TESTS "Build unit and integration tests" ON)
+option(OPENDIAL_BUILD_GUI "Build the graphical configuration application" ON)
+option(OPENDIAL_WITH_LAYERSHELL "Use LayerShellQt for the radial overlay when available" ON)
+option(OPENDIAL_WITH_X11 "Build X11 (XCB/XTest) context and injection adapters" ON)
+option(OPENDIAL_WITH_WAYLAND "Build native Wayland virtual-input and toplevel adapters" ON)
+option(OPENDIAL_WERROR "Treat warnings as errors" OFF)
+
+# Qt 6.4 is the floor: Ubuntu 24.04 LTS / Pop!_OS 24.04 ship Qt 6.4.2.
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core DBus Gui Network Widgets Quick QuickControls2)
+if(OPENDIAL_BUILD_TESTS)
+  find_package(Qt6 6.4 REQUIRED COMPONENTS Test)
+endif()
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(UDEV REQUIRED IMPORTED_TARGET libudev)
+pkg_check_modules(XKBCOMMON REQUIRED IMPORTED_TARGET xkbcommon)
+
+if(OPENDIAL_WITH_WAYLAND)
+  pkg_check_modules(WAYLAND_CLIENT IMPORTED_TARGET wayland-client)
+  find_program(WAYLAND_SCANNER wayland-scanner)
+  if(NOT WAYLAND_CLIENT_FOUND OR NOT WAYLAND_SCANNER)
+    message(WARNING "wayland-client or wayland-scanner missing: native Wayland adapters disabled")
+    set(OPENDIAL_WITH_WAYLAND OFF)
+  endif()
+endif()
+
+if(OPENDIAL_WITH_X11)
+  pkg_check_modules(X11DEPS IMPORTED_TARGET xcb xcb-ewmh x11 xtst)
+  if(NOT X11DEPS_FOUND)
+    pkg_check_modules(X11DEPS IMPORTED_TARGET xcb x11 xtst)
+  endif()
+  if(NOT X11DEPS_FOUND)
+    message(WARNING "xcb/x11/xtst missing: X11 adapters disabled")
+    set(OPENDIAL_WITH_X11 OFF)
+  endif()
+endif()
+
+set(OPENDIAL_HAVE_LAYERSHELL OFF)
+if(OPENDIAL_WITH_LAYERSHELL)
+  find_package(LayerShellQt QUIET)
+  if(LayerShellQt_FOUND)
+    set(OPENDIAL_HAVE_LAYERSHELL ON)
+  else()
+    message(STATUS "LayerShellQt not found: radial overlay uses a regular frameless window")
+  endif()
+endif()
+
+add_compile_options(-Wall -Wextra -Wno-unused-parameter)
+if(OPENDIAL_WERROR)
+  add_compile_options(-Werror)
+endif()
+add_compile_definitions(QT_NO_KEYWORDS OPENDIAL_VERSION="${PROJECT_VERSION}")
+
+add_subdirectory(src/core)
+add_subdirectory(src/daemon)
+add_subdirectory(src/cli)
+if(OPENDIAL_BUILD_GUI)
+  add_subdirectory(src/ui)
+endif()
+
+if(OPENDIAL_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
+
+# ---- install data -----------------------------------------------------------
+install(FILES packaging/udev/70-opendial-surface-dial.rules
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/udev/rules.d)
+install(FILES packaging/udev/71-opendial-uinput-optin.rules.example
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/opendial/udev)
+install(FILES packaging/systemd/opendial.service
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/user)
+install(FILES packaging/desktop/io.github.opendial.OpenDial.desktop
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+install(FILES packaging/desktop/io.github.opendial.OpenDial.Service.desktop
+        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/xdg/autostart)
+install(FILES packaging/desktop/io.github.opendial.OpenDial.metainfo.xml
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+install(FILES packaging/dbus/io.github.opendial.service
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
+install(FILES data/icons/io.github.opendial.OpenDial.svg
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps)
+install(FILES docs/man/opendial.1 docs/man/opendiald.1 docs/man/opendialctl.1
+        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+install(DIRECTORY profiles/examples/ DESTINATION ${CMAKE_INSTALL_DATADIR}/opendial/profiles)
+install(DIRECTORY plugins/ DESTINATION ${CMAKE_INSTALL_DATADIR}/opendial/plugins
+        PATTERN "__pycache__" EXCLUDE)

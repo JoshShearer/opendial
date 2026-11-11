@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/opendial">
+    <file alias="default-config.json">../../data/default-config.json</file>
+  </qresource>
+</RCC>

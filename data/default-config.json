@@ -1,0 +1,369 @@
+{
+  "schema": "opendial.config",
+  "version": 1,
+  "settings": {
+    "gestures": {
+      "longPressMs": 500,
+      "doubleClickMs": 300,
+      "debounceMs": 8,
+      "holdRotateThresholdDeg": 3,
+      "clickToggleLatch": false,
+      "pressedRotation": "rotate"
+    },
+    "menu": {
+      "placement": "pointer",
+      "openGesture": "long_press",
+      "display": "",
+      "savedPosition": { "x": 0.5, "y": 0.5 },
+      "maxPerRing": 7,
+      "timeoutMs": 8000,
+      "detentDegrees": 20,
+      "closeOnFocusChange": true,
+      "showValues": true,
+      "showHints": true,
+      "size": 360,
+      "theme": "system",
+      "accent": "#4c8dff",
+      "opacity": 0.94,
+      "reduceMotion": false,
+      "wrap": true
+    },
+    "haptics": {
+      "enabled": true,
+      "menuTicks": true,
+      "selectFeedback": true,
+      "boundaryFeedback": true,
+      "minDetentDegrees": 2
+    },
+    "rotation": {
+      "mode": "stepped",
+      "detentDegrees": 10,
+      "sensitivity": 1.0,
+      "invert": false,
+      "acceleration": 0,
+      "smoothing": 0.3,
+      "fineFactor": 0.25
+    },
+    "handedness": "right",
+    "osd": { "enabled": true, "durationMs": 1200, "position": "bottom" },
+    "notifications": { "enabled": true, "quiet": false },
+    "device": { "connectGuardMs": 800, "grabDevice": true },
+    "injection": { "backend": "auto", "allowUinput": false, "keyboardLayout": "auto" },
+    "context": { "enabled": true, "backend": "auto", "toolOnSwitch": "remember", "secureAppIds": [] },
+    "integrations": {
+      "httpApi": { "enabled": false, "port": 47311 },
+      "plugins": { "enabled": true }
+    },
+    "ui": { "tray": true, "startMinimized": false, "language": "system" },
+    "privacy": { "redactDiagnostics": true }
+  },
+  "profiles": [
+    {
+      "id": "global",
+      "name": "All apps",
+      "enabled": true,
+      "match": { "kind": "global" },
+      "menuMode": "replace",
+      "defaultTool": "volume",
+      "tools": [
+        {
+          "id": "volume", "name": "Volume", "icon": "volume", "enabled": true, "builtin": true,
+          "description": "Turn to change system volume, press to mute",
+          "rotation": { "detentDegrees": 10 },
+          "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "volume", "delta": 2 },
+            "rotate_ccw": { "type": "volume", "delta": -2 },
+            "click": { "type": "mute" }
+          }
+        },
+        {
+          "id": "scroll", "name": "Scroll", "icon": "scroll", "enabled": true, "builtin": true,
+          "description": "Turn to scroll up and down",
+          "rotation": { "detentDegrees": 6 },
+          "haptics": false,
+          "bindings": {
+            "rotate_cw": { "type": "scroll", "axis": "vertical", "amount": 1 },
+            "rotate_ccw": { "type": "scroll", "axis": "vertical", "amount": -1 }
+          }
+        },
+        {
+          "id": "zoom", "name": "Zoom", "icon": "zoom", "enabled": true, "builtin": true,
+          "description": "Turn to zoom in and out, press to reset",
+          "rotation": { "detentDegrees": 15 },
+          "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "zoom", "direction": "in" },
+            "rotate_ccw": { "type": "zoom", "direction": "out" },
+            "click": { "type": "zoom", "direction": "reset" }
+          }
+        },
+        {
+          "id": "undo", "name": "Undo", "icon": "undo", "enabled": true, "builtin": true,
+          "description": "Turn left to undo, right to redo",
+          "rotation": { "detentDegrees": 20 },
+          "haptics": true,
+          "bindings": {
+            "rotate_ccw": { "type": "key", "keys": "Ctrl+Z" },
+            "rotate_cw": { "type": "key", "keys": "Ctrl+Shift+Z" }
+          }
+        },
+        {
+          "id": "brightness", "name": "Brightness", "icon": "brightness", "enabled": true, "builtin": true,
+          "description": "Turn to change screen brightness",
+          "requires": "brightness",
+          "rotation": { "detentDegrees": 10 },
+          "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "brightness", "delta": 5 },
+            "rotate_ccw": { "type": "brightness", "delta": -5 }
+          }
+        },
+        {
+          "id": "media", "name": "Media", "icon": "media", "enabled": true, "builtin": true,
+          "description": "Turn for next/previous track, press to play or pause",
+          "rotation": { "detentDegrees": 30 },
+          "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "media", "command": "next" },
+            "rotate_ccw": { "type": "media", "command": "previous" },
+            "click": { "type": "media", "command": "playpause" }
+          }
+        },
+        {
+          "id": "more", "name": "More tools", "icon": "folder", "enabled": true, "kind": "folder",
+          "description": "Additional tools",
+          "children": [
+            {
+              "id": "hscroll", "name": "Horizontal scroll", "icon": "hscroll", "enabled": true, "builtin": true,
+              "rotation": { "detentDegrees": 6 }, "haptics": false,
+              "bindings": {
+                "rotate_cw": { "type": "scroll", "axis": "horizontal", "amount": 1 },
+                "rotate_ccw": { "type": "scroll", "axis": "horizontal", "amount": -1 }
+              }
+            },
+            {
+              "id": "mic", "name": "Microphone", "icon": "mic", "enabled": true, "builtin": true,
+              "rotation": { "detentDegrees": 10 }, "haptics": true,
+              "bindings": {
+                "rotate_cw": { "type": "volume", "target": "source", "delta": 2 },
+                "rotate_ccw": { "type": "volume", "target": "source", "delta": -2 },
+                "click": { "type": "mute", "target": "source" }
+              }
+            },
+            {
+              "id": "seek", "name": "Seek", "icon": "seek", "enabled": true, "builtin": true,
+              "rotation": { "detentDegrees": 10 }, "haptics": true,
+              "bindings": {
+                "rotate_cw": { "type": "media", "command": "seek", "offsetMs": 5000 },
+                "rotate_ccw": { "type": "media", "command": "seek", "offsetMs": -5000 },
+                "click": { "type": "media", "command": "playpause" }
+              }
+            },
+            {
+              "id": "workspaces", "name": "Workspaces", "icon": "workspace", "enabled": true, "builtin": true,
+              "rotation": { "detentDegrees": 30 }, "haptics": true,
+              "bindings": {
+                "rotate_cw": { "type": "workspace", "direction": "next" },
+                "rotate_ccw": { "type": "workspace", "direction": "previous" }
+              }
+            },
+            {
+              "id": "windows", "name": "Switch windows", "icon": "window", "enabled": true, "builtin": true,
+              "rotation": { "detentDegrees": 30 }, "haptics": true,
+              "bindings": {
+                "rotate_cw": { "type": "key", "keys": "Alt+Tab", "holdModifiers": true, "releaseAfterMs": 900 },
+                "rotate_ccw": { "type": "key", "keys": "Alt+Shift+Tab", "holdModifiers": true, "releaseAfterMs": 900 }
+              }
+            },
+            {
+              "id": "arrows", "name": "Arrow keys", "icon": "arrows", "enabled": true, "builtin": true,
+              "rotation": { "detentDegrees": 15 }, "haptics": true,
+              "bindings": {
+                "rotate_cw": { "type": "key", "keys": "Right" },
+                "rotate_ccw": { "type": "key", "keys": "Left" },
+                "rotate_while_pressed_cw": { "type": "key", "keys": "Down" },
+                "rotate_while_pressed_ccw": { "type": "key", "keys": "Up" },
+                "click": { "type": "key", "keys": "Return" }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "browser", "name": "Web browsers", "enabled": true, "verified": false,
+      "match": { "kind": "app", "appIds": ["firefox", "org.mozilla.firefox", "chromium", "org.chromium.chromium", "google-chrome", "com.google.chrome", "brave-browser", "com.brave.browser", "microsoft-edge", "librewolf", "zen", "vivaldi-stable", "org.gnome.epiphany"] },
+      "menuMode": "extend",
+      "tools": [
+        {
+          "id": "browser-tabs", "name": "Tabs", "icon": "tabs", "enabled": true,
+          "rotation": { "detentDegrees": 20 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "key", "keys": "Ctrl+Tab" },
+            "rotate_ccw": { "type": "key", "keys": "Ctrl+Shift+Tab" },
+            "click": { "type": "key", "keys": "Ctrl+T" }
+          }
+        },
+        {
+          "id": "browser-history", "name": "History", "icon": "history", "enabled": true,
+          "rotation": { "detentDegrees": 30 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "key", "keys": "Alt+Right" },
+            "rotate_ccw": { "type": "key", "keys": "Alt+Left" },
+            "click": { "type": "key", "keys": "F5" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "krita", "name": "Krita", "enabled": true, "verified": false,
+      "match": { "kind": "app", "appIds": ["krita", "org.kde.krita"] },
+      "menuMode": "extend",
+      "defaultTool": "krita-brush",
+      "tools": [
+        {
+          "id": "krita-brush", "name": "Brush size", "icon": "brush", "enabled": true,
+          "rotation": { "detentDegrees": 6 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "key", "keys": "]" },
+            "rotate_ccw": { "type": "key", "keys": "[" },
+            "click": { "type": "key", "keys": "E" }
+          }
+        },
+        {
+          "id": "krita-opacity", "name": "Opacity", "icon": "opacity", "enabled": true,
+          "rotation": { "detentDegrees": 10 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "key", "keys": "O" },
+            "rotate_ccw": { "type": "key", "keys": "I" }
+          }
+        },
+        {
+          "id": "krita-rotate", "name": "Rotate canvas", "icon": "rotate", "enabled": true,
+          "rotation": { "detentDegrees": 15 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "key", "keys": "Ctrl+]" },
+            "rotate_ccw": { "type": "key", "keys": "Ctrl+[" },
+            "click": { "type": "key", "keys": "5" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "blender", "name": "Blender", "enabled": true, "verified": false,
+      "match": { "kind": "app", "appIds": ["blender", "org.blender.blender"] },
+      "menuMode": "extend",
+      "tools": [
+        {
+          "id": "blender-brush", "name": "Brush radius", "icon": "brush", "enabled": true,
+          "rotation": { "detentDegrees": 8 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "key", "keys": "]" },
+            "rotate_ccw": { "type": "key", "keys": "[" }
+          }
+        },
+        {
+          "id": "blender-zoom", "name": "Viewport zoom", "icon": "zoom", "enabled": true,
+          "rotation": { "detentDegrees": 8 }, "haptics": false,
+          "bindings": {
+            "rotate_cw": { "type": "scroll", "axis": "vertical", "amount": -1 },
+            "rotate_ccw": { "type": "scroll", "axis": "vertical", "amount": 1 }
+          }
+        },
+        {
+          "id": "blender-timeline", "name": "Timeline", "icon": "timeline", "enabled": true,
+          "rotation": { "detentDegrees": 10 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "key", "keys": "Right" },
+            "rotate_ccw": { "type": "key", "keys": "Left" },
+            "click": { "type": "key", "keys": "space" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "gimp", "name": "GIMP", "enabled": true, "verified": false,
+      "match": { "kind": "app", "appIds": ["gimp", "org.gimp.gimp", "gimp-2.10", "gimp-3.0"] },
+      "menuMode": "extend",
+      "tools": [
+        {
+          "id": "gimp-brush", "name": "Brush size", "icon": "brush", "enabled": true,
+          "rotation": { "detentDegrees": 6 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "key", "keys": "]" },
+            "rotate_ccw": { "type": "key", "keys": "[" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "inkscape", "name": "Inkscape", "enabled": true, "verified": false,
+      "match": { "kind": "app", "appIds": ["inkscape", "org.inkscape.inkscape"] },
+      "menuMode": "extend",
+      "tools": [
+        {
+          "id": "inkscape-rotate", "name": "Rotate selection", "icon": "rotate", "enabled": true,
+          "rotation": { "detentDegrees": 15 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "key", "keys": "]" },
+            "rotate_ccw": { "type": "key", "keys": "[" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "freecad", "name": "FreeCAD", "enabled": true, "verified": false,
+      "match": { "kind": "app", "appIds": ["freecad", "org.freecad.freecad", "org.freecadweb.freecad"] },
+      "menuMode": "extend",
+      "tools": [
+        {
+          "id": "freecad-zoom", "name": "View zoom", "icon": "zoom", "enabled": true,
+          "rotation": { "detentDegrees": 8 }, "haptics": false,
+          "bindings": {
+            "rotate_cw": { "type": "scroll", "axis": "vertical", "amount": -1 },
+            "rotate_ccw": { "type": "scroll", "axis": "vertical", "amount": 1 },
+            "click": { "type": "key", "keys": "V F" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "media-players", "name": "Media players", "enabled": true, "verified": false,
+      "match": { "kind": "app", "appIds": ["mpv", "vlc", "org.videolan.vlc", "io.github.celluloid_player.celluloid", "spotify", "com.spotify.client", "org.gnome.totem", "totem", "haruna", "org.kde.haruna", "elisa", "org.kde.elisa", "rhythmbox", "org.gnome.rhythmbox3"] },
+      "menuMode": "extend",
+      "defaultTool": "player-seek",
+      "tools": [
+        {
+          "id": "player-seek", "name": "Scrub", "icon": "seek", "enabled": true,
+          "rotation": { "detentDegrees": 10 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "media", "command": "seek", "offsetMs": 5000 },
+            "rotate_ccw": { "type": "media", "command": "seek", "offsetMs": -5000 },
+            "rotate_while_pressed_cw": { "type": "media", "command": "seek", "offsetMs": 30000 },
+            "rotate_while_pressed_ccw": { "type": "media", "command": "seek", "offsetMs": -30000 },
+            "click": { "type": "media", "command": "playpause" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "video-editors", "name": "Video editors", "enabled": true, "verified": false,
+      "match": { "kind": "app", "appIds": ["kdenlive", "org.kde.kdenlive", "shotcut", "org.shotcut.shotcut", "resolve", "davinci-resolve", "org.pitivi.pitivi", "openshot", "org.openshot.openshot"] },
+      "menuMode": "extend",
+      "tools": [
+        {
+          "id": "editor-frames", "name": "Frame step", "icon": "timeline", "enabled": true,
+          "rotation": { "detentDegrees": 6 }, "haptics": true,
+          "bindings": {
+            "rotate_cw": { "type": "key", "keys": "Right" },
+            "rotate_ccw": { "type": "key", "keys": "Left" },
+            "rotate_while_pressed_cw": { "type": "key", "keys": "Shift+Right" },
+            "rotate_while_pressed_ccw": { "type": "key", "keys": "Shift+Left" },
+            "click": { "type": "key", "keys": "space" }
+          }
+        }
+      ]
+    }
+  ]
+}
