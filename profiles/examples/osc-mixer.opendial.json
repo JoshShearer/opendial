@@ -1,0 +1,70 @@
+{
+  "schema": "opendial.profile",
+  "version": 1,
+  "profile": {
+    "id": "osc-mixer",
+    "name": "OSC mixer fader",
+    "enabled": true,
+    "menuMode": "extend",
+    "match": {
+      "kind": "manual"
+    },
+    "tools": [
+      {
+        "id": "osc-fader1",
+        "name": "Fader 1",
+        "icon": "value",
+        "rotation": {
+          "detentDegrees": 4
+        },
+        "bindings": {
+          "rotate_cw": {
+            "type": "value",
+            "variable": "osc.fader1",
+            "step": 0.02,
+            "min": 0,
+            "max": 1,
+            "default": 0.75,
+            "label": "Fader 1",
+            "output": {
+              "type": "osc",
+              "host": "127.0.0.1",
+              "port": 9000,
+              "address": "/1/fader1",
+              "args": [
+                "{value}"
+              ]
+            }
+          },
+          "rotate_ccw": {
+            "type": "value",
+            "variable": "osc.fader1",
+            "step": -0.02,
+            "min": 0,
+            "max": 1,
+            "default": 0.75,
+            "label": "Fader 1",
+            "output": {
+              "type": "osc",
+              "host": "127.0.0.1",
+              "port": 9000,
+              "address": "/1/fader1",
+              "args": [
+                "{value}"
+              ]
+            }
+          },
+          "click": {
+            "type": "osc",
+            "host": "127.0.0.1",
+            "port": 9000,
+            "address": "/1/mute1",
+            "args": [
+              1
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

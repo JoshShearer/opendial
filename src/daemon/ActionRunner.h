@@ -59,6 +59,7 @@ private:
     ActionResult runValue(const QJsonObject &a, const ActionContext &ctx);
     ActionResult runMacro(const QJsonObject &a, const ActionContext &ctx);
     ActionResult runRisky(const QJsonObject &a, const ActionContext &ctx);
+    ActionResult runOsc(const QJsonObject &a);
     void scheduleMacro(QJsonArray steps, int index, int repeatLeft, ActionContext ctx, quint64 gen);
 
     Engine *m_engine;

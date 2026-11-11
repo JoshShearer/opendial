@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 add_executable(test_engine test_engine.cpp)
 target_link_libraries(test_engine PRIVATE opendialsvc Qt6::Test)
+target_compile_definitions(test_engine PRIVATE OPENDIAL_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 add_test(NAME test_engine COMMAND test_engine)
 set_tests_properties(test_engine PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
 

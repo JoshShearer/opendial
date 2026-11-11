@@ -1,0 +1,13 @@
+[package]
+name = "opendial-example"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Minimal OpenDial plugin in Rust (zbus)"
+publish = false
+
+[dependencies]
+zbus = { version = "4", default-features = false, features = ["tokio"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
+futures-util = "0.3"
+serde_json = "1"

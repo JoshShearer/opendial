@@ -1,0 +1,101 @@
+{
+  "schema": "opendial.profile",
+  "version": 1,
+  "profile": {
+    "id": "vscode",
+    "name": "VS Code",
+    "enabled": true,
+    "menuMode": "extend",
+    "match": {
+      "kind": "app",
+      "appIds": [
+        "code",
+        "code-oss",
+        "com.visualstudio.code",
+        "vscodium",
+        "com.vscodium.codium",
+        "codium"
+      ]
+    },
+    "tools": [
+      {
+        "id": "vscode-tabs",
+        "name": "Editor tabs",
+        "icon": "window",
+        "rotation": {
+          "detentDegrees": 12
+        },
+        "bindings": {
+          "rotate_cw": {
+            "type": "key",
+            "keys": "Ctrl+Page_Down"
+          },
+          "rotate_ccw": {
+            "type": "key",
+            "keys": "Ctrl+Page_Up"
+          },
+          "click": {
+            "type": "key",
+            "keys": "Ctrl+P"
+          }
+        }
+      },
+      {
+        "id": "vscode-zoom",
+        "name": "Font size",
+        "icon": "zoom",
+        "rotation": {
+          "detentDegrees": 15
+        },
+        "bindings": {
+          "rotate_cw": {
+            "type": "key",
+            "keys": "Ctrl+equal"
+          },
+          "rotate_ccw": {
+            "type": "key",
+            "keys": "Ctrl+minus"
+          },
+          "click": {
+            "type": "key",
+            "keys": "Ctrl+0"
+          }
+        }
+      },
+      {
+        "id": "vscode-history",
+        "name": "Undo / redo",
+        "icon": "undo",
+        "bindings": {
+          "rotate_cw": {
+            "type": "key",
+            "keys": "Ctrl+Shift+Z"
+          },
+          "rotate_ccw": {
+            "type": "key",
+            "keys": "Ctrl+Z"
+          }
+        }
+      },
+      {
+        "id": "vscode-problems",
+        "name": "Next problem",
+        "icon": "warning",
+        "rotation": {
+          "detentDegrees": 15
+        },
+        "bindings": {
+          "rotate_cw": {
+            "type": "key",
+            "keys": "F8"
+          },
+          "rotate_ccw": {
+            "type": "key",
+            "keys": "Shift+F8"
+          }
+        }
+      }
+    ],
+    "defaultTool": "vscode-tabs"
+  }
+}

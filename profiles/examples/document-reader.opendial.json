@@ -1,0 +1,70 @@
+{
+  "schema": "opendial.profile",
+  "version": 1,
+  "profile": {
+    "id": "document-reader",
+    "name": "Document readers",
+    "enabled": true,
+    "menuMode": "extend",
+    "match": {
+      "kind": "app",
+      "appIds": [
+        "okular",
+        "org.kde.okular",
+        "evince",
+        "org.gnome.Evince",
+        "org.gnome.Papers",
+        "papers",
+        "zathura",
+        "org.pwmt.zathura"
+      ]
+    },
+    "tools": [
+      {
+        "id": "reader-pages",
+        "name": "Pages",
+        "icon": "arrows",
+        "rotation": {
+          "detentDegrees": 15
+        },
+        "bindings": {
+          "rotate_cw": {
+            "type": "key",
+            "keys": "Next"
+          },
+          "rotate_ccw": {
+            "type": "key",
+            "keys": "Prior"
+          },
+          "click": {
+            "type": "key",
+            "keys": "Home"
+          }
+        }
+      },
+      {
+        "id": "reader-zoom",
+        "name": "Zoom",
+        "icon": "zoom",
+        "rotation": {
+          "detentDegrees": 12
+        },
+        "bindings": {
+          "rotate_cw": {
+            "type": "zoom",
+            "direction": "in"
+          },
+          "rotate_ccw": {
+            "type": "zoom",
+            "direction": "out"
+          },
+          "click": {
+            "type": "zoom",
+            "direction": "reset"
+          }
+        }
+      }
+    ],
+    "defaultTool": "reader-pages"
+  }
+}

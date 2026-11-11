@@ -203,7 +203,7 @@ void validateAction(const QJsonObject &a, const QString &path, ValidationIssues 
             err(is, path + QStringLiteral(".condition"), QStringLiteral("condition object required"));
         else {
             const auto c = a.value(QLatin1String("condition")).toObject();
-            if (c.contains(QLatin1String("op")) && !oneOf(str(c, "op"), {"lt", "le", "eq", "ne", "ge", "gt"}))
+            if (c.contains(QLatin1String("op")) && !oneOf(str(c, "op"), {"lt", "le", "eq", "ne", "ge", "gt", "<", "<=", "==", "!=", ">=", ">"}))
                 err(is, path + QStringLiteral(".condition.op"), QStringLiteral("op must be lt/le/eq/ne/ge/gt"));
         }
         if (!a.value(QLatin1String("then")).isObject())

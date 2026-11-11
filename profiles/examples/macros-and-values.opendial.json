@@ -1,0 +1,130 @@
+{
+  "schema": "opendial.profile",
+  "version": 1,
+  "profile": {
+    "id": "macros-and-values",
+    "name": "Macros & value tools (demo)",
+    "enabled": true,
+    "menuMode": "extend",
+    "match": {
+      "kind": "manual"
+    },
+    "tools": [
+      {
+        "id": "demo-copy-line",
+        "name": "Copy line",
+        "icon": "macro",
+        "bindings": {
+          "click": {
+            "type": "macro",
+            "steps": [
+              {
+                "action": {
+                  "type": "key",
+                  "keys": "Home"
+                }
+              },
+              {
+                "action": {
+                  "type": "key",
+                  "keys": "Shift+End"
+                }
+              },
+              {
+                "delayMs": 30
+              },
+              {
+                "action": {
+                  "type": "key",
+                  "keys": "Ctrl+C"
+                }
+              }
+            ]
+          },
+          "rotate_cw": {
+            "type": "key",
+            "keys": "Down"
+          },
+          "rotate_ccw": {
+            "type": "key",
+            "keys": "Up"
+          }
+        }
+      },
+      {
+        "id": "demo-counter",
+        "name": "Counter 0–10",
+        "icon": "value",
+        "rotation": {
+          "detentDegrees": 15
+        },
+        "bindings": {
+          "rotate_cw": {
+            "type": "value",
+            "variable": "demo.count",
+            "step": 1,
+            "min": 0,
+            "max": 10,
+            "label": "Counter"
+          },
+          "rotate_ccw": {
+            "type": "value",
+            "variable": "demo.count",
+            "step": 1,
+            "min": 0,
+            "max": 10,
+            "label": "Counter"
+          },
+          "click": {
+            "type": "value",
+            "variable": "demo.count",
+            "step": 0,
+            "min": 0,
+            "max": 10,
+            "default": 0,
+            "resetOnClick": true,
+            "label": "Counter"
+          }
+        }
+      },
+      {
+        "id": "demo-type-date",
+        "name": "Signature",
+        "icon": "keyboard",
+        "bindings": {
+          "click": {
+            "type": "text",
+            "text": "Kind regards,\n"
+          }
+        }
+      },
+      {
+        "id": "demo-guarded",
+        "name": "Volume (stops at 50 % up)",
+        "icon": "volume",
+        "bindings": {
+          "rotate_cw": {
+            "type": "if",
+            "condition": {
+              "variable": "demo.count",
+              "op": "lt",
+              "value": 5
+            },
+            "then": {
+              "type": "volume",
+              "delta": 2
+            },
+            "else": {
+              "type": "haptic",
+              "waveform": "buzz"
+            }
+          },
+          "rotate_ccw": {
+            "type": "volume",
+            "delta": -2
+          }
+        }
+      }
+    ]
+  }
+}

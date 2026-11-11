@@ -148,13 +148,14 @@ bool ActionRunner::evaluate(const QJsonObject &cond, const ActionContext &ctx) c
     if (cond.contains(QStringLiteral("variable"))) {
         const double cur = m_engine->variable(cond.value(QStringLiteral("variable")).toString()).toDouble();
         const double val = cond.value(QStringLiteral("value")).toDouble();
-        const QString op = cond.value(QStringLiteral("op")).toString(QStringLiteral("=="));
-        if (op == QLatin1String("==")) return qFuzzyCompare(cur + 1, val + 1);
-        if (op == QLatin1String("!=")) return !qFuzzyCompare(cur + 1, val + 1);
-        if (op == QLatin1String("<")) return cur < val;
-        if (op == QLatin1String("<=")) return cur <= val;
-        if (op == QLatin1String(">")) return cur > val;
-        if (op == QLatin1String(">=")) return cur >= val;
+        // names as validated (lt/le/eq/ne/ge/gt); symbols accepted too
+        const QString op = cond.value(QStringLiteral("op")).toString(QStringLiteral("eq"));
+        if (op == QLatin1String("eq") || op == QLatin1String("==")) return qFuzzyCompare(cur + 1, val + 1);
+        if (op == QLatin1String("ne") || op == QLatin1String("!=")) return !qFuzzyCompare(cur + 1, val + 1);
+        if (op == QLatin1String("lt") || op == QLatin1String("<")) return cur < val;
+        if (op == QLatin1String("le") || op == QLatin1String("<=")) return cur <= val;
+        if (op == QLatin1String("gt") || op == QLatin1String(">")) return cur > val;
+        if (op == QLatin1String("ge") || op == QLatin1String(">=")) return cur >= val;
         return false;
     }
     if (cond.contains(QStringLiteral("direction")))
@@ -186,7 +187,7 @@ ActionResult ActionRunner::run(const QJsonObject &a, const ActionContext &ctx)
         static const QSet<QString> external{
             QStringLiteral("key"), QStringLiteral("text"), QStringLiteral("mouse"), QStringLiteral("scroll"),
             QStringLiteral("zoom"), QStringLiteral("volume"), QStringLiteral("mute"), QStringLiteral("media"),
-            QStringLiteral("brightness"), QStringLiteral("workspace")};
+            QStringLiteral("brightness"), QStringLiteral("workspace"), QStringLiteral("osc")};
         if (external.contains(type))
             return ActionResult{true, QStringLiteral("dry-run"), false};
     }
@@ -335,6 +336,8 @@ ActionResult ActionRunner::run(const QJsonObject &a, const ActionContext &ctx)
         sub.depth++;
         return run(branch, sub);
     }
+    if (type == QLatin1String("osc"))
+        return runOsc(a); // loopback (risky hosts were handled above)
     if (type == QLatin1String("plugin")) {
         QJsonObject ev{{QStringLiteral("toolId"), str(a, "toolId", ctx.toolId)},
                        {QStringLiteral("slot"), ctx.slot},
@@ -495,15 +498,21 @@ ActionResult ActionRunner::runRisky(const QJsonObject &a, const ActionContext &c
         bus.asyncCall(m);
         return okr();
     }
-    if (type == QLatin1String("osc")) {
-        const QHostAddress host(str(a, "host", QStringLiteral("127.0.0.1")));
-        if (host.isNull())
-            return fail(QStringLiteral("osc: host must be a numeric address"));
-        const QByteArray pkt = encodeOsc(str(a, "address"), a.value(QStringLiteral("args")).toArray());
-        const qint64 n = m_udp.writeDatagram(pkt, host, quint16(a.value(QStringLiteral("port")).toInt(9000)));
-        return n == pkt.size() ? okr() : fail(QStringLiteral("osc send failed"));
-    }
+    if (type == QLatin1String("osc"))
+        return runOsc(a);
     return fail(QStringLiteral("unhandled risky action ") + type);
+}
+
+// OSC over UDP. Loopback targets are safe (local apps such as a DAW); any
+// other host goes through runRisky() and needs approval first.
+ActionResult ActionRunner::runOsc(const QJsonObject &a)
+{
+    const QHostAddress host(str(a, "host", QStringLiteral("127.0.0.1")));
+    if (host.isNull())
+        return fail(QStringLiteral("osc: host must be a numeric address"));
+    const QByteArray pkt = encodeOsc(str(a, "address"), a.value(QStringLiteral("args")).toArray());
+    const qint64 n = m_udp.writeDatagram(pkt, host, quint16(a.value(QStringLiteral("port")).toInt(9000)));
+    return n == pkt.size() ? okr() : fail(QStringLiteral("osc send failed"));
 }
 
 } // namespace opendial

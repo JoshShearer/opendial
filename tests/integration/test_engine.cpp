@@ -8,6 +8,7 @@
 
 #include <QGuiApplication>
 #include <QJsonArray>
+#include <QDir>
 #include <QJsonDocument>
 #include <QSignalSpy>
 #include <QTemporaryDir>
@@ -350,6 +351,133 @@ private Q_SLOTS:
         QTest::qWait(600);
         for (const auto &v : actionsSince(e(), at))
             QCOMPARE(v.toObject().value(QStringLiteral("slot")).toString(), QStringLiteral("click"));
+    }
+
+    // Every shipped example profile imports cleanly; the demo tools behave.
+    void exampleProfiles()
+    {
+        const QDir dir(QStringLiteral(OPENDIAL_SOURCE_DIR "/profiles/examples"));
+        const QStringList files = dir.entryList({QStringLiteral("*.opendial.json")}, QDir::Files);
+        QVERIFY(files.size() >= 4);
+        for (const QString &f : files) {
+            QFile file(dir.filePath(f));
+            QVERIFY(file.open(QIODevice::ReadOnly));
+            const QJsonObject r = e().importProfile(QJsonDocument::fromJson(file.readAll()).object());
+            QVERIFY2(r.value(QStringLiteral("ok")).toBool(), qPrintable(f + QLatin1Char(' ') + QString::fromUtf8(QJsonDocument(r).toJson())));
+        }
+        QVERIFY(e().lockProfile(QStringLiteral("macros-and-values")));
+
+        // value tool: bounded counter, click resets
+        QVERIFY(e().setActiveTool(QStringLiteral("demo-counter")));
+        sim({{QStringLiteral("rotate"), 15.0 * 12}}); // 12 detents, clamps at 10
+        QTRY_COMPARE(e().variable(QStringLiteral("demo.count")).toDouble(), 10.0);
+        sim({{QStringLiteral("rotate"), -15.0 * 4}});
+        QTRY_COMPARE(e().variable(QStringLiteral("demo.count")).toDouble(), 6.0);
+
+        // if: counter >= 5 -> volume up is replaced by a haptic buzz
+        QVERIFY(e().setActiveTool(QStringLiteral("demo-guarded")));
+        int at = actionCount(e());
+        sim({{QStringLiteral("rotate"), 10.0}});
+        QTRY_COMPARE(actionsSince(e(), at).size(), 1);
+        QVERIFY(actionsSince(e(), at).first().toObject().value(QStringLiteral("ok")).toBool());
+        e().setVariable(QStringLiteral("demo.count"), 2);
+        at = actionCount(e());
+        sim({{QStringLiteral("rotate"), 10.0}});
+        QTRY_COMPARE(actionsSince(e(), at).size(), 1);
+
+        // macro runs (dry-run: steps are logged, nothing typed)
+        QVERIFY(e().setActiveTool(QStringLiteral("demo-copy-line")));
+        at = actionCount(e());
+        click();
+        QTRY_COMPARE(actionsSince(e(), at).size(), 1);
+        QVERIFY(actionsSince(e(), at).first().toObject().value(QStringLiteral("ok")).toBool());
+
+        // OSC fader on loopback: allowed without approval (dry-run: logged only)
+        QVERIFY(e().lockProfile(QStringLiteral("osc-mixer")));
+        QVERIFY(e().setActiveTool(QStringLiteral("osc-fader1")));
+        at = actionCount(e());
+        sim({{QStringLiteral("rotate"), 8.0}}); // two 4° detents
+        QTRY_VERIFY(actionsSince(e(), at).size() >= 1);
+        for (const auto &v : actionsSince(e(), at))
+            QVERIFY2(v.toObject().value(QStringLiteral("ok")).toBool(), qPrintable(QString::fromUtf8(QJsonDocument(v.toObject()).toJson())));
+        QTRY_VERIFY(std::abs(e().variable(QStringLiteral("osc.fader1")).toDouble() - 0.79) < 1e-6);
+    }
+
+    // OSC to another machine needs approval; to loopback it does not.
+    void oscRemoteNeedsApproval()
+    {
+        const QJsonObject local{{QStringLiteral("type"), QStringLiteral("osc")}, {QStringLiteral("host"), QStringLiteral("127.0.0.1")},
+                                {QStringLiteral("port"), 9000}, {QStringLiteral("address"), QStringLiteral("/x")}};
+        QJsonObject remote = local;
+        remote.insert(QStringLiteral("host"), QStringLiteral("192.0.2.10"));
+        QCOMPARE(actionRisk(local), Risk::Safe);
+        QCOMPARE(actionRisk(remote), Risk::NeedsApproval);
+        QJsonObject cfg = e().config();
+        QJsonArray profiles = cfg.value(QStringLiteral("profiles")).toArray();
+        QJsonObject global = profiles.first().toObject();
+        QJsonArray tools = global.value(QStringLiteral("tools")).toArray();
+        tools.append(QJsonObject{{QStringLiteral("id"), QStringLiteral("osc")}, {QStringLiteral("name"), QStringLiteral("OSC")},
+                                 {QStringLiteral("bindings"), QJsonObject{{QStringLiteral("rotate_cw"), local}, {QStringLiteral("click"), remote}}}});
+        global.insert(QStringLiteral("tools"), tools);
+        profiles.replace(0, global);
+        cfg.insert(QStringLiteral("profiles"), profiles);
+        QString err;
+        QVERIFY(e().setConfig(cfg, &err).ok());
+        QVERIFY(e().setActiveTool(QStringLiteral("osc")));
+        int at = actionCount(e());
+        sim({{QStringLiteral("rotate"), 10.0}});
+        QVERIFY(actionsSince(e(), at).first().toObject().value(QStringLiteral("ok")).toBool());
+        at = actionCount(e());
+        click();
+        QTRY_COMPARE(actionsSince(e(), at).size(), 1);
+        QVERIFY(!actionsSince(e(), at).first().toObject().value(QStringLiteral("ok")).toBool());
+        bool listed = false;
+        for (const auto &v : e().pendingApprovals())
+            listed |= v.toObject().value(QStringLiteral("fingerprint")).toString() == actionFingerprint(remote);
+        QVERIFY(listed);
+    }
+
+    void ifConditionOperators()
+    {
+        e().setVariable(QStringLiteral("x"), 3);
+        QJsonObject cfg = e().config();
+        QJsonArray profiles = cfg.value(QStringLiteral("profiles")).toArray();
+        QJsonObject global = profiles.first().toObject();
+        QJsonArray tools = global.value(QStringLiteral("tools")).toArray();
+        auto cond = [](const char *op, double v) {
+            return QJsonObject{{QStringLiteral("type"), QStringLiteral("if")},
+                               {QStringLiteral("condition"), QJsonObject{{QStringLiteral("variable"), QStringLiteral("x")},
+                                                                         {QStringLiteral("op"), QLatin1String(op)}, {QStringLiteral("value"), v}}},
+                               {QStringLiteral("then"), QJsonObject{{QStringLiteral("type"), QStringLiteral("tool"), }, {QStringLiteral("op"), QStringLiteral("select")}, {QStringLiteral("id"), QStringLiteral("zoom")}}},
+                               {QStringLiteral("else"), QJsonObject{{QStringLiteral("type"), QStringLiteral("tool")}, {QStringLiteral("op"), QStringLiteral("select")}, {QStringLiteral("id"), QStringLiteral("undo")}}}};
+        };
+        const QList<std::tuple<const char *, double, QString>> cases{
+            {"lt", 5, QStringLiteral("zoom")}, {"lt", 2, QStringLiteral("undo")}, {"ge", 3, QStringLiteral("zoom")},
+            {"eq", 3, QStringLiteral("zoom")}, {"ne", 3, QStringLiteral("undo")}, {"gt", 3, QStringLiteral("undo")},
+            {"<=", 3, QStringLiteral("zoom")}};
+        tools.append(QJsonObject{{QStringLiteral("id"), QStringLiteral("cond")}, {QStringLiteral("name"), QStringLiteral("Cond")},
+                                 {QStringLiteral("bindings"), QJsonObject{{QStringLiteral("click"), cond("lt", 0)}}}});
+        global.insert(QStringLiteral("tools"), tools);
+        profiles.replace(0, global);
+        cfg.insert(QStringLiteral("profiles"), profiles);
+        for (const auto &[op, v, expect] : cases) {
+            QJsonObject c = cfg;
+            QJsonArray ps = c.value(QStringLiteral("profiles")).toArray();
+            QJsonObject g = ps.first().toObject();
+            QJsonArray ts = g.value(QStringLiteral("tools")).toArray();
+            QJsonObject t = ts.last().toObject();
+            t.insert(QStringLiteral("bindings"), QJsonObject{{QStringLiteral("click"), cond(op, v)}});
+            ts.replace(ts.size() - 1, t);
+            g.insert(QStringLiteral("tools"), ts);
+            ps.replace(0, g);
+            c.insert(QStringLiteral("profiles"), ps);
+            QString err;
+            const auto val = e().setConfig(c, &err);
+            QVERIFY2(val.ok(), qPrintable(val.errors().join(QLatin1Char(';'))));
+            QVERIFY(e().setActiveTool(QStringLiteral("cond")));
+            click();
+            QTRY_COMPARE_WITH_TIMEOUT(e().activeToolId(), expect, 1500);
+        }
     }
 
     void simulationRejectsGarbage()

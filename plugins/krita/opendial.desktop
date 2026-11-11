@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=opendial
+X-Python-2-Compatible=false
+Name=OpenDial (Surface Dial)
+Comment=Surface Dial tools for Krita through the OpenDial service: brush size, opacity, canvas zoom and rotation
