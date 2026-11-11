@@ -9,6 +9,8 @@
 #include <QGuiApplication>
 #include <QJsonArray>
 #include <QDir>
+#include <QDBusConnection>
+#include <QDBusConnectionInterface>
 #include <QJsonDocument>
 #include <QSignalSpy>
 #include <QTemporaryDir>
@@ -147,6 +149,55 @@ private Q_SLOTS:
         for (const auto &v : e().config().value(QStringLiteral("profiles")).toArray().first().toObject().value(QStringLiteral("tools")).toArray())
             hasBrightness |= v.toObject().value(QStringLiteral("id")).toString() == QLatin1String("brightness");
         QVERIFY(hasBrightness);
+    }
+
+    // WP-21: a tool marked "requires":"mpris" is offered only while a player exists.
+    void mprisToolFollowsPlayers()
+    {
+        auto bus = QDBusConnection::sessionBus();
+        if (!bus.isConnected())
+            QSKIP("no session bus");
+        auto names = bus.interface()->registeredServiceNames().value();
+        for (const auto &n : names)
+            if (n.startsWith(QLatin1String("org.mpris.MediaPlayer2.")))
+                QSKIP("a real MPRIS player is on this bus (run under dbus-run-session)");
+        QJsonObject cfg = e().config();
+        QJsonArray profiles = cfg.value(QStringLiteral("profiles")).toArray();
+        QJsonObject global = profiles.first().toObject();
+        QJsonArray tools = global.value(QStringLiteral("tools")).toArray();
+        tools.append(QJsonObject{{QStringLiteral("id"), QStringLiteral("now-playing")},
+                                 {QStringLiteral("name"), QStringLiteral("Now playing")},
+                                 {QStringLiteral("requires"), QStringLiteral("mpris")},
+                                 {QStringLiteral("bindings"), QJsonObject{{QStringLiteral("click"), QJsonObject{{QStringLiteral("type"), QStringLiteral("media")}, {QStringLiteral("command"), QStringLiteral("playpause")}}}}}});
+        global.insert(QStringLiteral("tools"), tools);
+        profiles.replace(0, global);
+        cfg.insert(QStringLiteral("profiles"), profiles);
+        QString err;
+        const auto v = e().setConfig(cfg, &err);
+        QVERIFY2(v.ok(), qPrintable(v.errors().join(QLatin1Char(';')) + err));
+        auto has = [this] {
+            for (const auto &t : e().menuTools())
+                if (t.toObject().value(QStringLiteral("id")).toString() == QLatin1String("now-playing"))
+                    return true;
+            return false;
+        };
+        QVERIFY(!has());
+        QVERIFY(bus.registerService(QStringLiteral("org.mpris.MediaPlayer2.opendialtest")));
+        QTRY_VERIFY_WITH_TIMEOUT(has(), 3000);
+        QVERIFY(bus.unregisterService(QStringLiteral("org.mpris.MediaPlayer2.opendialtest")));
+        QTRY_VERIFY_WITH_TIMEOUT(!has(), 3000);
+
+        auto bad = cfg;
+        auto p2 = bad.value(QStringLiteral("profiles")).toArray();
+        auto g2 = p2.first().toObject();
+        auto t2 = g2.value(QStringLiteral("tools")).toArray();
+        auto last = t2.last().toObject();
+        last.insert(QStringLiteral("requires"), QStringLiteral("quantum"));
+        t2.replace(t2.size() - 1, last);
+        g2.insert(QStringLiteral("tools"), t2);
+        p2.replace(0, g2);
+        bad.insert(QStringLiteral("profiles"), p2);
+        QVERIFY(!validateConfig(bad).ok());
     }
 
     // Custom tool with separate clockwise, counter-clockwise and click shortcuts.

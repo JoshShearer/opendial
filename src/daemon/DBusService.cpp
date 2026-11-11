@@ -180,11 +180,21 @@ QString DBusService::GetDiagnostics(bool redact) { return toJson(m_engine->diagn
 QString DBusService::ExportDiagnostics(const QString &path, bool redact)
 {
     // Only write into the caller's home or runtime dir, never follow symlinks.
+    // The parent directory is canonicalised so ".." and symlinked parents
+    // cannot escape; empty or "/" roots (unset XDG_RUNTIME_DIR, HOME=/) are
+    // ignored instead of allowing everything.
     const QFileInfo fi(path);
-    const QString abs = fi.absoluteFilePath();
-    const bool allowed = abs.startsWith(QDir::homePath() + QLatin1Char('/')) || abs.startsWith(QStringLiteral("/tmp/"))
-                         || abs.startsWith(qEnvironmentVariable("XDG_RUNTIME_DIR") + QLatin1Char('/'));
-    if (!allowed || fi.isSymLink() || fi.isDir())
+    const QString parent = QFileInfo(fi.absolutePath()).canonicalFilePath();
+    const QString abs = parent + QLatin1Char('/') + fi.fileName();
+    bool allowed = false;
+    for (const QString &root : {QDir::homePath(), QStringLiteral("/tmp"), qEnvironmentVariable("XDG_RUNTIME_DIR")}) {
+        const QString r = QFileInfo(root).canonicalFilePath();
+        if (r.isEmpty() || r == QLatin1String("/"))
+            continue;
+        if (parent == r || parent.startsWith(r + QLatin1Char('/')))
+            allowed = true;
+    }
+    if (parent.isEmpty() || fi.fileName().isEmpty() || !allowed || fi.isSymLink() || fi.isDir())
         return toJson(QJsonObject{{QStringLiteral("ok"), false}, {QStringLiteral("error"), QStringLiteral("path not allowed")}});
     QSaveFile f(abs);
     if (!f.open(QIODevice::WriteOnly))

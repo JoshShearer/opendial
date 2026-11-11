@@ -93,6 +93,11 @@ void validateTool(const QJsonObject &t, const QString &path, ValidationIssues &i
         is.append({path + QStringLiteral(".name"), QStringLiteral("tool name required"), false});
     if (t.value(QLatin1String("name")).toString().size() > 40)
         is.append({path + QStringLiteral(".name"), QStringLiteral("name longer than 40 characters may be truncated"), true});
+    if (t.contains(QLatin1String("requires"))) {
+        const QString req = t.value(QLatin1String("requires")).toString();
+        if (req != QLatin1String("brightness") && req != QLatin1String("mpris"))
+            is.append({path + QStringLiteral(".requires"), QStringLiteral("unknown requirement (brightness or mpris)"), false});
+    }
     const bool folder = t.value(QLatin1String("kind")).toString() == QLatin1String("folder");
     if (folder) {
         const auto kids = t.value(QLatin1String("children")).toArray();

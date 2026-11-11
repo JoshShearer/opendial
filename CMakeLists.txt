@@ -87,5 +87,5 @@ install(FILES data/icons/io.github.opendial.OpenDial.svg DESTINATION ${CMAKE_INS
 install(FILES docs/man/opendial.1 docs/man/opendiald.1 docs/man/opendialctl.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 install(FILES data/default-config.json DESTINATION ${CMAKE_INSTALL_DATADIR}/opendial)
 install(DIRECTORY profiles/examples/ DESTINATION ${CMAKE_INSTALL_DATADIR}/opendial/profiles)
-install(DIRECTORY plugins/ DESTINATION ${CMAKE_INSTALL_DATADIR}/opendial/plugins
+install(DIRECTORY plugins/ DESTINATION ${CMAKE_INSTALL_DATADIR}/opendial/plugins USE_SOURCE_PERMISSIONS
         PATTERN "__pycache__" EXCLUDE PATTERN "node_modules" EXCLUDE PATTERN "target" EXCLUDE)

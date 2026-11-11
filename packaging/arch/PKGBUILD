@@ -1,0 +1,42 @@
+# Maintainer: OpenDial contributors <opendial@users.noreply.github.com>
+pkgname=opendial
+pkgver=0.9.0
+pkgrel=1
+pkgdesc='Microsoft Surface Dial support: radial menu, tools, per-app profiles, haptics'
+arch=('x86_64' 'aarch64')
+url='https://github.com/opendial/opendial'
+license=('MIT')
+depends=('qt6-base' 'qt6-declarative' 'qt6-svg' 'qt6-wayland' 'layer-shell-qt'
+         'libxkbcommon' 'libx11' 'libxtst' 'wayland' 'systemd-libs'
+         'glibc' 'hicolor-icon-theme')
+makedepends=('cmake' 'ninja' 'wayland-protocols' 'qt6-tools')
+checkdepends=('python' 'dbus')
+optdepends=('bluez: pair and connect the Dial from the app'
+            'wireplumber: volume tool (wpctl)'
+            'brightnessctl: brightness tool on laptops'
+            'ddcutil: brightness tool on external monitors'
+            'xdg-desktop-portal: RemoteDesktop portal keyboard/mouse injection'
+            'python: plugin examples and the Krita plugin'
+            'python-gobject: Python plugin example')
+install=opendial.install
+# Release builds download the tag; scripts/build-arch.sh places a tarball of
+# the working tree here under the same name for local builds.
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cmake -S "$pkgname-$pkgver" -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=None \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DOPENDIAL_BUILD_TESTS=ON
+  cmake --build build
+}
+
+check() {
+  QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure --timeout 180
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+  install -Dm644 "$pkgname-$pkgver/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

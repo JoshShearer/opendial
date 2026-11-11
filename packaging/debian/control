@@ -1,0 +1,49 @@
+Source: opendial
+Section: utils
+Priority: optional
+Maintainer: OpenDial contributors <opendial@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13),
+               cmake (>= 3.22),
+               ninja-build,
+               pkgconf,
+               qt6-base-dev (>= 6.4),
+               qt6-base-dev-tools,
+               qt6-declarative-dev,
+               qt6-svg-dev | libqt6svg6-dev,
+               libudev-dev,
+               libxkbcommon-dev,
+               libwayland-dev,
+               libwayland-bin,
+               libx11-dev,
+               libxtst-dev,
+               dbus-daemon | dbus,
+               python3
+Standards-Version: 4.7.0
+Homepage: https://github.com/opendial/opendial
+Rules-Requires-Root: no
+
+Package: opendial
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+         qml6-module-qtcore,
+         qml6-module-qtqml-workerscript,
+         qml6-module-qtquick,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-dialogs,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-templates,
+         qml6-module-qtquick-window,
+         libqt6svg6,
+         qt6-wayland
+Recommends: bluez, wireplumber | pulseaudio-utils, xdg-desktop-portal
+Suggests: brightnessctl, ddcutil, python3-gi, gnome-shell-extension-prefs
+Description: Microsoft Surface Dial support: radial menu, tools, app profiles
+ OpenDial turns the Microsoft Surface Dial into a programmable controller on
+ Linux. Press and hold for a radial tool menu; turn to change volume, scroll,
+ zoom, undo, brightness and media, or define tools with separate clockwise,
+ counter-clockwise and click actions. Per-app profiles follow the focused
+ window on GNOME, KDE, wlroots compositors and X11; haptic feedback,
+ sensitivity and handedness are configurable.
+ .
+ The service runs as the logged-in user. A udev rule grants the active seat
+ access to the Surface Dial only; no other input device is affected.

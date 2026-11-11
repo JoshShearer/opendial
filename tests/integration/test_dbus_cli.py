@@ -89,11 +89,19 @@ try:
     ids = [p["id"] for p in jctl("profiles")]
     check("imported copy renamed", any(i.startswith("krita-") for i in ids), str(ids))
 
+    octl("tool", "volume")
+    octl("simulate", "rotate", "30")
+    time.sleep(0.3)
     diag = os.path.join(tmp.name, "diag.json")
     check("diagnostics export", octl("diagnose", "--out", diag).returncode == 0 and os.path.exists(diag))
     if os.path.exists(diag):
         check("diagnostics file is private", (os.stat(diag).st_mode & 0o077) == 0)
+        with open(diag) as f:
+            report = json.load(f)
+        acts = [e for e in report.get("eventLog", []) if "action" in e]
+        check("redacted log keeps only action types", bool(acts) and all(e["action"] == e.get("actionType") for e in acts), str(acts[:3]))
     check("diagnostics outside home refused", octl("diagnose", "--out", "/etc/opendial-diag.json", expect=1).returncode == 1)
+    check("diagnostics '..' escape refused", octl("diagnose", "--out", "/tmp/../etc/opendial-diag.json", expect=1).returncode == 1)
 
     check("pause", octl("pause").returncode == 0 and jctl("status")["paused"] is True)
     check("resume", octl("resume").returncode == 0 and jctl("status")["paused"] is False)

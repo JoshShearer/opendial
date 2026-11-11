@@ -52,6 +52,7 @@ Tools and profiles
 
 Configuration
   config path | get | validate [FILE] | set FILE | reset | rollback
+  config-validate [FILE]       same as: config validate [FILE]
   import FILE                  import a profile (.json), risky actions stay unapproved
   export ID [FILE]             export a profile
   approvals                    list actions that need approval
@@ -468,6 +469,10 @@ int main(int argc, char **argv)
         return Ok;
     }
     const QString cmd = args.takeFirst();
+    if (cmd == QLatin1String("config-validate")) {
+        args.prepend(QStringLiteral("validate"));
+        return configCmd(args);
+    }
     if (cmd == QLatin1String("config"))
         return configCmd(args);
     if (!daemonRunning()) {

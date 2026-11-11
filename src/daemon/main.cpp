@@ -137,6 +137,20 @@ int main(int argc, char **argv)
     }
     // Never let the overlay steal focus or appear in task switchers.
     qputenv("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1");
+    // --help/--version and display-less starts (service started before the
+    // session exported WAYLAND_DISPLAY/DISPLAY, ssh, containers) must not abort
+    // in the platform plugin: run headless, the device and D-Bus still work.
+    bool infoOnly = false;
+    for (int i = 1; i < argc; ++i) {
+        const QByteArray a(argv[i]);
+        infoOnly |= a == "-h" || a == "--help" || a == "--help-all" || a == "-v" || a == "--version";
+    }
+    const bool noDisplay = qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY") && qEnvironmentVariableIsEmpty("DISPLAY");
+    if (infoOnly || (noDisplay && qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")))
+    {
+        qputenv("QT_QPA_PLATFORM", "offscreen");
+        qunsetenv("QT_QPA_PLATFORMTHEME"); // e.g. gtk3 exits without a display
+    }
     QApplication::setQuitOnLastWindowClosed(false);
     QApplication app(argc, argv);
     QApplication::setApplicationName(QStringLiteral("opendiald"));

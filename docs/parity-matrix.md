@@ -1,0 +1,73 @@
+# Windows parity matrix
+
+**Last updated:** 2026-11-10, release candidate 0.9.0.
+**Reference hardware:** Microsoft Surface Dial, BLE HID `0005:045E:091B`
+(BlueZ modalias `usb:v045Ep091Bd0108`). It exposes the HID (0x1812) and Battery
+(0x180F) GATT services. Paired and trusted on the reference machine.
+**Reference machine:** Arch-based (Omarchy), kernel 7.2.15, Hyprland (Wayland),
+Qt 6.12, BlueZ 5.x.
+
+## Status vocabulary (SRS §1.2)
+
+| Status | Meaning |
+|---|---|
+| `verified` | Observed working on the physical Dial on the named desktop |
+| `implemented-unverified` | Implemented and covered by automated tests on simulated or replayed input; not yet observed on physical hardware |
+| `partial` | Some of the acceptance criteria are met; the gap is listed |
+| `blocked-upstream` | A compositor, kernel or protocol restriction prevents it |
+| `unsupported-hardware` | The hardware does not provide it |
+| `not-started` | Not implemented |
+
+**Column meaning:**
+- The desktop columns are about the parts that differ per desktop: key injection, focus tracking and the overlay. Gesture, profile and action logic is shared code and is the same everywhere.
+- *untested* means nobody has run it on that desktop yet. It is never a pass.
+- *Hyprland (ref)* is the reference machine's desktop. Hyprland is not one of the SRS target desktops; it is listed because it is where the evidence comes from.
+
+**Hardware gate:** the physical E2E checklist in
+[tests/hardware/README.md](../tests/hardware/README.md) has **not** been run to
+completion. So no P0 row is `verified`, and this release does **not** claim
+Windows parity. The Dial was paired, trusted and briefly connected on the
+reference machine. Then it went to sleep, before the input capture and haptics
+checks could be done. hidraw access also needs the packaged udev rule, which
+was not installed on the reference machine at the time.
+
+## Matrix
+
+| ID | Feature | Windows baseline | Linux implementation | X11 | GNOME Wayland | KDE Wayland | COSMIC Wayland | Hyprland (ref) | Physical hardware evidence | Limitations | Release gate | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| WP-01 | BLE pairing and reconnect | Pair in Settings → Bluetooth; reconnects on wake | BlueZ via D-Bus (search/pair/trust/connect/forget on the Device page and `opendialctl bluetooth`). udev hotplug reopens the device. A connect guard drops the burst of buffered turns on reconnect. Single-instance service, so no duplicate bindings | n/a (desktop-independent) | same | same | same | Pairing done | Paired + trusted; BlueZ showed Connected=yes, battery 99%. Reconnect after sleep, reboot and out-of-range not yet exercised | No own pairing stack, by design. Out-of-range recovery depends on BlueZ | P0: physical reconnect test | `partial` |
+| WP-02 | CW / CCW rotation | Relative rotation, both directions | evdev `REL_DIAL` (sign + = CW), frames on `SYN_REPORT`, `SYN_DROPPED` handled. Aggregation preserves the total delta (unit tests `test_rotation`, `test_decoder`) | shared | shared | shared | shared | Simulated + replay | Event codes taken from the kernel `hid-microsoft` mapping and the descriptor layout; not yet captured from this unit | Raw unit → degree mapping assumes the 3600-step default until the feature-report read-back confirms it on hardware | P0: 1/10/100-step physical test | `implemented-unverified` |
+| WP-03 | Short click | One click per press | `BTN_0` down/up, debounce, double-click window only applies when a double-click binding exists (`test_gesture`, `doubleClickBindingOnlyWhenBound`) | shared | shared | shared | shared | Simulated | not captured | — | P0 | `implemented-unverified` |
+| WP-04 | Press-and-hold opens radial menu | Hold ~1 s → wheel menu; turn to highlight, click to select | Configurable `longPressMs` (default 500). Overlay with highlighted sector, names, icons, hints, live value. Menu turns never leak into tool actions (`longPressRotateClickSelects`, `menuNoActionsWhileOpen`, `menuRotationBackwardsWraps`) | Frameless window, untested | Frameless window (no layer-shell on GNOME), untested | layer-shell, untested | layer-shell, untested | **Overlay verified** in nested Hyprland: placement at pointer, highlight follows rotation, select, OSD (simulated input) | not exercised with the physical button | GNOME has no layer-shell: the overlay is a normal top-level window and the compositor decides its stacking | P0 | `implemented-unverified` |
+| WP-05 | Rotate while pressed | (Windows: no separate gesture) | `rotate_while_pressed_cw/ccw` bindings, hold-rotate threshold, fine-control mode; does not fire normal rotation (`test_gesture`) | shared | shared | shared | shared | Simulated | not captured | — | P0 | `implemented-unverified` |
+| WP-06 | Standard tools | Volume, Scroll, Zoom, Undo, Brightness, Media | Same six in the same order (`builtinToolsPresent`). Volume and mute via wpctl/pactl. Scroll and zoom via pointer/keys. Undo/redo via keys. Brightness via `/sys/class/backlight` + logind SetBrightness, or ddcutil. Media via MPRIS | XTest injection: untested | Portal RemoteDesktop for scroll/keys (one-time permission): untested | Wayland virtual input or portal: untested | untested | Volume, media, brightness paths exercised in dry-run tests; keys via wayland virtual keyboard used during E2E | not exercised with hardware input | Brightness: external monitors need DDC/CI + ddcutil; reports "not available" otherwise | P0 | `implemented-unverified` |
+| WP-07 | Custom directional shortcuts | Separate CW/CCW/click shortcuts | Per-tool bindings for every gesture. Key chords and sequences with modifiers, layout-aware via xkbcommon. Key recorder in the Tool editor (`customToolSeparateBindings`, `test_keychord`) | XTest: untested | Portal RemoteDesktop: untested | untested | untested | Virtual keyboard path used in nested E2E | — | Wayland: injection needs a supported protocol or the portal. The Integrations page shows `supported`/`permission-needed`/`not-supported`/`fallback-available` per backend | P0 | `implemented-unverified` |
+| WP-08 | Add/remove/reorder tools | Wheel settings list | Menu editor: add, delete, duplicate, drag reorder, enable/disable, icon picker (bundled + custom file), live preview, editor undo/redo; applies on save | GUI is desktop-independent | untested | untested | untested | GUI rendered and operated in nested Hyprland | n/a (software) | — | P0 | `implemented-unverified` |
+| WP-09 | Haptic enable/disable | Vibration on/off | Feature report 1 sets the auto-haptic flag; output report 1 drives manual pulses on the haptics worker thread. Applied vs requested state is shown | shared | shared | shared | shared | Encoder unit-tested (`test_rotation`) | **not exercised**: hidraw was root-only on the reference machine (udev rule not yet installed) | Needs the udev rule; without it the UI reports "haptics unavailable: permission". It never fails silently | P0 | `implemented-unverified` |
+| WP-10 | Haptic step interval | Haptic ticks per detent | Resolution in the feature report follows the tool's detent. Below `minDetentDegrees` (2°) haptics turn off, following Microsoft's guidance (`hardwareModeFor`) | shared | shared | shared | shared | unit-tested | not exercised | Resolution read-back is compared; a mismatch is reported | P0 | `implemented-unverified` |
+| WP-11 | Sensitivity and resolution | Rotation resolution | Stepped/continuous, degrees per step, sensitivity, acceleration, smoothing, invert, fine factor; per-tool overrides; live response graph on the Rotation page | shared | shared | shared | shared | unit-tested | not exercised | Software scaling and hardware resolution are separate settings | P0 | `implemented-unverified` |
+| WP-12 | Context-sensitive app tools | Apps supply tools | Profiles by app ID (Flatpak IDs normalised), window class, title regex, workspace; precedence lock > window > app > workspace > global (`test_profiles`, `appProfileSwitching`) | X11 `_NET_ACTIVE_WINDOW`: untested | Needs the bundled GNOME Shell extension (`ReportFocus`); without it manual switching only: untested | KWin script bridge loaded over D-Bus: untested | No supported focus protocol known in cosmic-comp: manual switching / profile lock; expected `blocked-upstream` | Hyprland IPC tracker used in the nested E2E | n/a | Focus detection is per desktop; see [platform-capabilities.md](platform-capabilities.md) | P0 | `partial` |
+| WP-13 | Menu and tool icons | Icons per tool | Bundled symbolic icon set + custom SVG/PNG; selected state highlighted | shared | shared | shared | shared | Verified visually in nested Hyprland | n/a | — | P0 | `implemented-unverified` |
+| WP-14 | Persist and restore | Settings survive restarts | Atomic JSON writes (QSaveFile, 0600, symlink refusal), N backups, migration, rollback. State (active tool per profile, approvals, variables) persisted (`stateSurvivesRestart`, `test_config`) | shared | shared | shared | shared | Restart tested in the integration suite | logout/reboot cycle not run on hardware | — | P0 | `implemented-unverified` |
+| WP-15 | Wheel positioning | Surface Studio: on-screen; otherwise fixed | Pointer, screen centre, saved position, a named display; HiDPI-aware | Pointer from XQueryPointer: untested | Pointer from the GNOME extension; otherwise centre | Pointer from the KWin script bridge (`workspace.cursorPos`): untested | no pointer source known → centre/saved | Pointer placement verified in nested Hyprland | n/a | Wayland does not give clients the global pointer position; per-desktop fallbacks are documented | P1 | `partial` |
+| WP-16 | Visual settings and handedness | Dominant hand | Handedness, invert direction, theme (system/light/dark), accent, opacity, size, reduce motion | shared | shared | shared | shared | Settings rendered in nested Hyprland | n/a | — | P1 | `implemented-unverified` |
+| WP-17 | Inking / brush tools | Pen apps (brush size, ruler) | Starter profiles: Krita, Blender, GIMP, Inkscape, FreeCAD, video editors. Krita Python plugin (brush size, opacity, zoom, rotate) over D-Bus | — | — | — | — | Profiles load and validate (`exampleProfiles`) | n/a | Shortcuts follow the apps' default keymaps and were **not** checked against current app versions. The Krita plugin has not been run inside Krita (not installed) | P1 | `implemented-unverified` |
+| WP-18 | Native app customization API | RadialController API | D-Bus `RegisterApp`/`PluginEvent`/`PluginFeedback` with user consent; loopback HTTP API + SSE; examples in Python (tested), JS (tested), Rust (not compiled here: no cargo) | shared | shared | shared | shared | Python + JS examples pass in `test_plugins_http` | n/a | Windows RadialController binaries do not run; the capability is reproduced natively | P1 | `implemented-unverified` |
+| WP-19 | Contextual haptics | Per-tool haptics | Per-tool haptic on/off and detent; applied on tool switch | shared | shared | shared | shared | unit-tested | not exercised | Needs hidraw access | P1 | `implemented-unverified` |
+| WP-20 | On-screen digitizer localization | Surface Studio only | Not implemented. The HID input report carries optional X/Y, which is decoded for diagnostics only | — | — | — | — | — | No Surface Studio-class digitizer available | Needs a compatible digitizer that reports contact; not promised | Research gate | `unsupported-hardware` |
+| WP-21 | Media-aware tools | Media tool | Media tool + media-player profiles; MPRIS player chosen by most recent activity; a media tool can be offered only while a player exists (`requires: mpris`) | shared | shared | shared | shared | dry-run tested | n/a | No auto-switch without user configuration (no surprise activation) | P1 | `implemented-unverified` |
+| WP-22 | Macro workflows | — (extension) | `macro` (steps, delays, bounded repeat), `if` conditions (bounded depth), variables/value tools; command/launch/dbus need approval (`riskyActionNeedsApproval`, `test_actions`) | shared | shared | shared | shared | tested | n/a | Macro size and depth limits are enforced by the validator | P0 ext. | `implemented-unverified` |
+| WP-23 | Profile import/export | — | Versioned envelope `opendial.profile` v1; validation; risky actions stay unapproved on import; multi-level rollback (`profileImportExport`, `rollbackWalksBack`) | shared | shared | shared | shared | tested | n/a | — | P0 ext. | `implemented-unverified` |
+| WP-24 | Profile layers | — | Global, workspace, app, window, manual lock; deterministic tie-breaking (priority, then order) | shared | shared | shared | shared | tested | n/a | Workspace and window matching need a tracker that reports them | P1 ext. | `implemented-unverified` |
+| WP-25 | Reliability + install | — | .deb (Debian/Ubuntu) and Arch package; udev uaccess rule limited to the Dial; systemd user unit + D-Bus activation; no root daemon | — | — | — | — | Packages built and installed in clean containers; see [VERIFICATION.md](../VERIFICATION.md) | Not installed on physical desktops of each distro family | The udev rule needs package installation (root) once; that is the only privileged step | P0 | `partial` |
+
+## What would turn a row green
+
+Run the steps in [tests/hardware/README.md](../tests/hardware/README.md) on:
+1. Ubuntu 24.04 GNOME (Wayland and Xorg)
+2. Pop!_OS 24.04 COSMIC
+3. Arch KDE Plasma (Wayland and X11)
+
+Record the results in [VERIFICATION.md](../VERIFICATION.md) with the date,
+versions and the `opendialctl diagnose` export. Then update the row above. A
+row only moves to `verified` with that evidence.

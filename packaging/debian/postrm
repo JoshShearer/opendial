@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+# User configuration in ~/.config/opendial is never removed (also not on purge):
+# it belongs to the users, not to the package.
+if [ "$1" = "remove" ] && command -v udevadm >/dev/null 2>&1 && [ -d /run/udev ]; then
+    udevadm control --reload-rules || true
+fi
+#DEBHELPER#
+exit 0

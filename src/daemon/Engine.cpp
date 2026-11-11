@@ -162,7 +162,13 @@ void Engine::start()
         m_portalToken = t;
         saveState();
     });
-    connect(m_media, &MediaController::playersChanged, this, &Engine::scheduleStateChanged);
+    connect(m_media, &MediaController::playersChanged, this, [this] {
+        // tools with "requires":"mpris" appear/disappear with the players
+        // (never while the menu is open, so the ring does not shift under the user)
+        if (!m_menu.isOpen())
+            rebuildMenuTools();
+        scheduleStateChanged();
+    });
     connect(m_audio, &AudioController::volumeChanged, this, [this](bool source, double v, bool muted) {
         showOsd(QJsonObject{{QStringLiteral("icon"), muted ? (source ? QStringLiteral("mic-off") : QStringLiteral("mute")) : (source ? QStringLiteral("mic") : QStringLiteral("volume"))},
                             {QStringLiteral("title"), source ? tr("Microphone") : tr("Volume")},
@@ -370,7 +376,8 @@ void Engine::runSlot(const QString &slotName, int steps, int direction, bool fin
     m_lastActionResult = (r.ok ? QStringLiteral("ok") : QStringLiteral("failed")) + (r.message.isEmpty() ? QString() : QStringLiteral(": ") + r.message);
     QJsonObject le{{QStringLiteral("kind"), QStringLiteral("action")}, {QStringLiteral("slot"), slotName},
                    {QStringLiteral("tool"), m_activeToolId}, {QStringLiteral("steps"), steps * (direction ? direction : 1)},
-                   {QStringLiteral("action"), describeAction(action)}, {QStringLiteral("ok"), r.ok},
+                   {QStringLiteral("action"), describeAction(action)},
+                   {QStringLiteral("actionType"), action.value(QStringLiteral("type")).toString()}, {QStringLiteral("ok"), r.ok},
                    {QStringLiteral("latencyUs"), double(m_lastActionLatencyUs)}};
     if (!r.message.isEmpty())
         le.insert(QStringLiteral("message"), r.message);
@@ -953,6 +960,8 @@ QJsonArray Engine::filterAvailable(const QJsonArray &tools) const
         if (req == QLatin1String("brightness") && m_brightness->state() == CapState::NotSupported
             && m_inj->keyboardCapability() != QLatin1String("supported"))
             continue;
+        if (req == QLatin1String("mpris") && m_media->players().isEmpty())
+            continue;
         if (t.value(QStringLiteral("kind")).toString() == QLatin1String("folder")) {
             t.insert(QStringLiteral("children"), filterAvailable(t.value(QStringLiteral("children")).toArray()));
             if (t.value(QStringLiteral("children")).toArray().isEmpty())
@@ -1381,9 +1390,19 @@ QJsonObject Engine::diagnostics(bool redact) const
     d.insert(QStringLiteral("nodes"), m_device->scan());
     d.insert(QStringLiteral("bluetooth"), m_bluez->toJson(redact));
     d.insert(QStringLiteral("focus"), m_focus.toJson(redact));
+    // Redacted exports keep only the action type: descriptions can contain
+    // typed text, key sequences, command lines or URLs (SRS §12).
     QJsonArray log;
-    for (const auto &e : m_log)
+    for (QJsonObject e : m_log) {
+        if (redact) {
+            if (e.contains(QStringLiteral("action")))
+                e.insert(QStringLiteral("action"), e.value(QStringLiteral("actionType")).toString(QStringLiteral("<redacted>")));
+            if (e.contains(QStringLiteral("message")))
+                e.insert(QStringLiteral("message"), QStringLiteral("<redacted>"));
+            e.remove(QStringLiteral("title"));
+        }
         log.append(e);
+    }
     d.insert(QStringLiteral("eventLog"), log);
     d.insert(QStringLiteral("configValidation"), m_loaded.validation.toJson());
     d.insert(QStringLiteral("configMessages"), QJsonArray::fromStringList(m_loaded.messages));

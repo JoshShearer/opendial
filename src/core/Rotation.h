@@ -74,8 +74,9 @@ struct HapticsRequest {
 // Pure policy: decide the hardware mode for a requested tool configuration.
 HardwareMode hardwareModeFor(const HapticsRequest &req);
 
-// HID report encoding (validated against the device's report descriptor;
-// see docs/hardware-protocol.md).
+// HID report encoding (layout from the HID Haptics usage page and the
+// community surface-dial-linux driver; read-back checked at runtime,
+// see docs/hardware-protocol.md for its verification status).
 namespace hid {
 constexpr quint16 kVendorMicrosoft = 0x045E;
 constexpr quint16 kProductSurfaceDial = 0x091B;

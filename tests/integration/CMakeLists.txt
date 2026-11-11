@@ -2,11 +2,16 @@
 add_executable(test_engine test_engine.cpp)
 target_link_libraries(test_engine PRIVATE opendialsvc Qt6::Test)
 target_compile_definitions(test_engine PRIVATE OPENDIAL_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
-add_test(NAME test_engine COMMAND test_engine)
+# Tests run on a private session bus (dbus-run-session) so the desktop's own
+# MPRIS players, portals and services cannot influence them.
+find_program(DBUS_RUN_SESSION dbus-run-session)
+if(DBUS_RUN_SESSION)
+  add_test(NAME test_engine COMMAND ${DBUS_RUN_SESSION} -- $<TARGET_FILE:test_engine>)
+else()
+  add_test(NAME test_engine COMMAND test_engine)
+endif()
 set_tests_properties(test_engine PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
 
-# Script tests run the real binaries on a private session bus (dbus-run-session).
-find_program(DBUS_RUN_SESSION dbus-run-session)
 find_package(Python3 COMPONENTS Interpreter)
 if(DBUS_RUN_SESSION AND Python3_FOUND)
   add_test(NAME test_dbus_cli
