@@ -11,6 +11,8 @@
 | `protocols/virtual-keyboard-unstable-v1.xml` | Wayland protocol (Purism / Wayland authors) | MIT | Only the XML is copied; code is generated at build time by `wayland-scanner` |
 | `protocols/wlr-virtual-pointer-unstable-v1.xml` | wlr-protocols | MIT | as above |
 | `protocols/wlr-foreign-toplevel-management-unstable-v1.xml` | wlr-protocols | HPND (sell variant) | Permissive, GPL- and MIT-compatible; notice kept in the file and in `debian/copyright` |
+| `protocols/ext-foreign-toplevel-list-v1.xml` | wayland-protocols (staging) | HPND (sell variant) | as above |
+| `protocols/cosmic-toplevel-info-unstable-v1.xml` | pop-os/cosmic-protocols | HPND (sell variant) | as above. The file references two workspace interfaces OpenDial never binds; `CosmicToplevelTracker.cpp` defines empty placeholders for them |
 
 No source code was copied from other Surface Dial projects.
 [daniel5151/surface-dial-linux](https://github.com/daniel5151/surface-dial-linux)

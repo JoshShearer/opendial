@@ -14,6 +14,10 @@
 #include <optional>
 
 struct zwlr_foreign_toplevel_manager_v1;
+struct ext_foreign_toplevel_list_v1;
+struct ext_foreign_toplevel_handle_v1;
+struct zcosmic_toplevel_info_v1;
+struct zcosmic_toplevel_handle_v1;
 struct _XDisplay;
 
 namespace opendial {
@@ -112,6 +116,38 @@ public:
 private:
     zwlr_foreign_toplevel_manager_v1 *m_mgr = nullptr;
     void *m_lastActive = nullptr;
+};
+
+// ------------------------------------------------------------------ COSMIC
+
+class CosmicToplevelTracker : public FocusTracker {
+    Q_OBJECT
+public:
+    explicit CosmicToplevelTracker(QObject *parent = nullptr);
+    static bool detected();
+    QString id() const override { return QStringLiteral("cosmic-toplevel"); }
+    QString label() const override { return QStringLiteral("COSMIC toplevel-info protocol"); }
+    CapState state() const override { return m_info && m_list ? CapState::Supported : CapState::NotSupported; }
+    void start() override;
+
+    // used by C callbacks
+    struct Toplevel {
+        QString appId, title, reportedAppId, reportedTitle;
+        bool activated = false;
+        bool pendingActivated = false;
+        zcosmic_toplevel_handle_v1 *cosmic = nullptr;
+    };
+    QHash<ext_foreign_toplevel_handle_v1 *, Toplevel> toplevels;
+    void addToplevel(ext_foreign_toplevel_handle_v1 *h);
+    void cosmicState(zcosmic_toplevel_handle_v1 *c, bool activated);
+    void infoDone();
+    void toplevelDone(ext_foreign_toplevel_handle_v1 *h);
+    void toplevelClosed(ext_foreign_toplevel_handle_v1 *h);
+private:
+    zcosmic_toplevel_info_v1 *m_info = nullptr;
+    ext_foreign_toplevel_list_v1 *m_list = nullptr;
+    QHash<zcosmic_toplevel_handle_v1 *, ext_foreign_toplevel_handle_v1 *> m_byCosmic;
+    ext_foreign_toplevel_handle_v1 *m_lastActive = nullptr;
 };
 
 // --------------------------------------------------------------------- X11

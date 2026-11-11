@@ -28,7 +28,8 @@ set(SERVICE_LIBS Qt6::Core Qt6::DBus Qt6::Gui Qt6::Network Qt6::Widgets Qt6::Qui
 if(OPENDIAL_WITH_WAYLAND)
   set(PROTO_OUT ${CMAKE_CURRENT_BINARY_DIR}/protocols)
   file(MAKE_DIRECTORY ${PROTO_OUT})
-  foreach(proto virtual-keyboard-unstable-v1 wlr-virtual-pointer-unstable-v1 wlr-foreign-toplevel-management-unstable-v1)
+  foreach(proto virtual-keyboard-unstable-v1 wlr-virtual-pointer-unstable-v1 wlr-foreign-toplevel-management-unstable-v1
+                ext-foreign-toplevel-list-v1 cosmic-toplevel-info-unstable-v1)
     set(xml ${CMAKE_SOURCE_DIR}/protocols/${proto}.xml)
     add_custom_command(
       OUTPUT ${PROTO_OUT}/${proto}-client-protocol.h ${PROTO_OUT}/${proto}-protocol.c
@@ -40,7 +41,8 @@ if(OPENDIAL_WITH_WAYLAND)
   list(APPEND SERVICE_SOURCES
     ${SRC}/inject/WaylandClient.cpp
     ${SRC}/inject/WaylandInjector.cpp
-    ${SRC}/context/WlrToplevelTracker.cpp)
+    ${SRC}/context/WlrToplevelTracker.cpp
+    ${SRC}/context/CosmicToplevelTracker.cpp)
   list(APPEND SERVICE_DEFS OPENDIAL_HAVE_WAYLAND)
   list(APPEND SERVICE_LIBS PkgConfig::WAYLAND_CLIENT)
 endif()

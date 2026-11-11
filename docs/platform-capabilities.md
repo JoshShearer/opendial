@@ -14,9 +14,9 @@ its live state as `supported`, `permission-needed`, `not-supported` or
 |---|---|---|---|---|---|
 | Read the Dial (evdev) | udev uaccess | same | same | same | same |
 | Haptics (hidraw) | udev uaccess | same | same | same | same |
-| Keyboard injection | XTest | RemoteDesktop portal (one-time permission; restore token kept) | `zwp_virtual_keyboard_v1` if offered, else the portal | portal if xdg-desktop-portal-cosmic offers RemoteDesktop (untested) | `zwp_virtual_keyboard_v1` (**tested** on Hyprland: keys delivered to a client) |
-| Pointer / scroll injection | XTest | RemoteDesktop portal | `zwlr_virtual_pointer_v1` if offered, else the portal | portal (untested) | `zwlr_virtual_pointer_v1` (scroll observed with the physical Dial) |
-| Focused app detection | `_NET_ACTIVE_WINDOW` + `WM_CLASS` | Bundled GNOME Shell extension → `ReportFocus` | KWin script loaded over D-Bus (`org.kde.kwin.Scripting`) | no protocol known; manual profile lock | Hyprland IPC, Sway IPC, or `zwlr_foreign_toplevel_manager_v1` (Hyprland **tested**) |
+| Keyboard injection | XTest | RemoteDesktop portal (one-time permission; restore token kept) | `zwp_virtual_keyboard_v1` if offered, else the portal | `zwp_virtual_keyboard_v1` (offered by cosmic-comp 1.11; keys delivered in a container test) | `zwp_virtual_keyboard_v1` (**tested** on Hyprland: keys delivered to a client) |
+| Pointer / scroll injection | XTest | RemoteDesktop portal | `zwlr_virtual_pointer_v1` if offered, else the portal | no `zwlr_virtual_pointer_v1` in cosmic-comp 1.11 → RemoteDesktop portal if available, else scroll/zoom tools fall back to keys | `zwlr_virtual_pointer_v1` (scroll observed with the physical Dial) |
+| Focused app detection | `_NET_ACTIVE_WINDOW` + `WM_CLASS` | Bundled GNOME Shell extension → `ReportFocus` | KWin script loaded over D-Bus (`org.kde.kwin.Scripting`) | `zcosmic_toplevel_info_v1` + `ext_foreign_toplevel_list_v1` (focus and focus changes reported in a container test) | Hyprland IPC, Sway IPC, or `zwlr_foreign_toplevel_manager_v1` (Hyprland **tested**) |
 | Pointer position (menu at pointer) | `XQueryPointer` | GNOME extension `GetPointer` | KWin script `workspace.cursorPos` | none → screen centre or saved position | Hyprland IPC (**tested**) |
 | Radial overlay | frameless always-on-top window | frameless window (no layer-shell in Mutter) | `zwlr_layer_shell_v1` via LayerShellQt | layer-shell | layer-shell (**tested**) |
 | Volume | wpctl → pactl | same | same | same | same |
@@ -50,5 +50,5 @@ plugin actions do not need injection.
 
 - GNOME Wayland (Mutter) has no virtual-keyboard or layer-shell protocol for clients. Injection works only through the portal, so GNOME shows a permission prompt once. Focus and pointer need the Shell extension.
 - No Wayland desktop gives an ordinary client the global pointer position. The pointer placement on Wayland comes from compositor IPC or a bridge.
-- COSMIC: no focus-reporting protocol for clients is known to us at this date. Status `blocked-upstream` until tested otherwise.
+- COSMIC: cosmic-comp offers `zcosmic_toplevel_info_v1` (v2+), which adds an "activated" state to `ext_foreign_toplevel_list_v1` handles. OpenDial uses it (`CosmicToplevelTracker`). Tested against cosmic-comp 1.11 in a container (`tests/desktops/cosmic-probe.sh`), not in a full COSMIC session.
 - Surface Studio on-screen placement needs a digitizer that reports the Dial's contact. Not available here (WP-20).

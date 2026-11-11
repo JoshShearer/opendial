@@ -11,7 +11,7 @@ dbus-monitor "type='method_call',interface='io.github.opendial.Daemon1'" > /out/
 M=$!
 krita --nosplash --new-image RGBA,U8,800,600 > /out/krita.log 2>&1 &
 K=$!
-for i in $(seq 1 60); do opendialctl plugins 2>/dev/null | grep -q org.kde.krita && break; sleep 1; done
+for i in $(seq 1 240); do opendialctl plugins 2>/dev/null | grep -q org.kde.krita && break; sleep 1; done
 opendialctl plugins > /out/plugins.txt 2>&1
 opendialctl plugin allow org.kde.krita
 sleep 2   # let Krita finish opening the document
@@ -22,7 +22,7 @@ opendialctl simulate rotate 30; sleep 1
 opendialctl simulate rotate -12; sleep 1
 opendialctl tool plugin:org.kde.krita:rotate
 opendialctl simulate rotate 18; sleep 1
-kill $K $M; kill $D; wait 2>/dev/null
+kill $M $D 2>/dev/null; kill -9 $K 2>/dev/null; sleep 1
 python3 - <<'PY'
 import re, sys
 plugins = open('/out/plugins.txt').read()

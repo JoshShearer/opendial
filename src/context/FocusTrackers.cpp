@@ -423,6 +423,8 @@ void ContextManager::start(const QString &preferred)
         use(m_bridge);
     }
 #ifdef OPENDIAL_HAVE_WAYLAND
+    if (!m_tracker && (any || preferred == QLatin1String("cosmic-toplevel")) && CosmicToplevelTracker::detected())
+        use(new CosmicToplevelTracker(this));
     if (!m_tracker && (any || preferred == QLatin1String("wlr-foreign-toplevel")) && WlrToplevelTracker::detected())
         use(new WlrToplevelTracker(this));
 #endif

@@ -57,7 +57,7 @@ walkthrough (links in [SRS.md](SRS.md) §20).
 - **Focus:**
   - No portal exposes the focused app.
   - Each desktop has its own route: GNOME needs a Shell extension; KWin accepts scripts over D-Bus; wlroots has foreign-toplevel; Hyprland and Sway have IPC sockets; X11 has EWMH.
-  - COSMIC: no client-facing focus API known.
+  - COSMIC: `zcosmic_toplevel_info_v1` on top of `ext_foreign_toplevel_list_v1` (checked against cosmic-comp 1.11).
 - **Overlay:** layer-shell where available; elsewhere a frameless top-level window.
 
 ## 4. Packaging targets
@@ -93,7 +93,7 @@ Cost: no `cargo clippy`. In its place: `-Wall -Wextra` (optionally `-Werror`), Q
 ## Open research items
 
 1. Hardware: capture rotation and button fixtures, read the report descriptor, write and read back the feature report.
-2. COSMIC: check whether cosmic-comp offers a toplevel-info or virtual-keyboard protocol to clients, and whether xdg-desktop-portal-cosmic implements RemoteDesktop.
+2. COSMIC: checked cosmic-comp 1.11: it offers `zwp_virtual_keyboard_v1`, `zcosmic_toplevel_info_v1`, `ext_foreign_toplevel_list_v1` and layer-shell, but not `zwlr_virtual_pointer_v1`. Still open: whether xdg-desktop-portal-cosmic implements RemoteDesktop (for scroll).
 3. GNOME: the extension was checked on GNOME Shell 51 headless (container); a real GNOME session is still to do.
 4. KWin 6: checked on 6.8.2: `zwp_virtual_keyboard_v1` is not offered to ordinary clients, so key injection uses the RemoteDesktop portal.
 5. App shortcuts in the starter profiles: check each against current app versions (SRS §8).
