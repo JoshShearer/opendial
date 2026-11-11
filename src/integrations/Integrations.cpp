@@ -389,7 +389,9 @@ CapState WorkspaceController::state() const
 bool WorkspaceController::step(int dir)
 {
     if (m_method == QLatin1String("hyprland-dispatch"))
-        return !HyprlandTracker::request(dir > 0 ? "dispatch workspace e+1" : "dispatch workspace e-1").isEmpty();
+        // e±1: the next/previous open workspace on the focused monitor
+        return dir > 0 ? HyprlandTracker::dispatch("workspace e+1", R"(hl.dsp.focus({ workspace = "e+1" }))")
+                       : HyprlandTracker::dispatch("workspace e-1", R"(hl.dsp.focus({ workspace = "e-1" }))");
     if (m_method == QLatin1String("sway-ipc"))
         return SwayTracker::command(dir > 0 ? "workspace next_on_output" : "workspace prev_on_output");
     if (m_method == QLatin1String("kwin-dbus")) {

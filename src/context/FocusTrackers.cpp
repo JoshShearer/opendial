@@ -51,6 +51,21 @@ QByteArray HyprlandTracker::request(const QByteArray &cmd, int timeoutMs)
     return out;
 }
 
+bool HyprlandTracker::dispatch(const QByteArray &legacy, const QByteArray &lua)
+{
+    static bool preferLua = false;
+    for (int attempt = 0; attempt < 2; ++attempt) {
+        const bool useLua = preferLua != (attempt == 1);
+        const QByteArray reply = request("dispatch " + (useLua ? lua : legacy)).trimmed();
+        if (reply == "ok") {
+            preferLua = useLua;
+            return true;
+        }
+        qCInfo(lcContext) << "hyprland dispatch" << (useLua ? "lua" : "legacy") << "failed:" << reply.left(200);
+    }
+    return false;
+}
+
 void HyprlandTracker::start()
 {
     connect(&m_events, &QLocalSocket::readyRead, this, &HyprlandTracker::onEvents);

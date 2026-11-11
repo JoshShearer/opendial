@@ -54,6 +54,10 @@ public:
     std::optional<QPoint> pointerPosition() override;
     // One-shot request on the command socket (synchronous, short timeout).
     static QByteArray request(const QByteArray &cmd, int timeoutMs = 300);
+    // Runs a dispatcher. Hyprland 0.56 replaced `dispatch <name> <args>` with
+    // Lua (`dispatch hl.dsp.…`), so the form that works is remembered and the
+    // other one is tried when it fails. True only when Hyprland replied "ok".
+    static bool dispatch(const QByteArray &legacy, const QByteArray &lua);
 private:
     void onEvents();
     void refresh();
