@@ -14,7 +14,10 @@
 #include <QFile>
 #include <QLoggingCategory>
 #include <QSocketNotifier>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QTimer>
+#include <cstdio>
 
 #include <csignal>
 #include <pthread.h>
@@ -32,14 +35,16 @@ void replay(Engine *engine, const QString &path, double speed, bool quitAfter, i
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly)) {
         qCritical("cannot open fixture %s", qPrintable(path));
-        QCoreApplication::exit(2);
+        // the event loop is not running yet: queue the exit
+        QMetaObject::invokeMethod(qApp, [] { QCoreApplication::exit(2); }, Qt::QueuedConnection);
         return;
     }
     QString error;
     const auto lines = parseFixture(f.readAll(), &error);
     if (!error.isEmpty()) {
         qCritical("fixture error: %s", qPrintable(error));
-        QCoreApplication::exit(2);
+        // the event loop is not running yet: queue the exit
+        QMetaObject::invokeMethod(qApp, [] { QCoreApplication::exit(2); }, Qt::QueuedConnection);
         return;
     }
     auto decoder = std::make_shared<DialDecoder>();
@@ -61,7 +66,13 @@ void replay(Engine *engine, const QString &path, double speed, bool quitAfter, i
         });
     }
     if (quitAfter)
-        QTimer::singleShot(int(last) + 1500, qApp, [] { QCoreApplication::quit(); });
+        QTimer::singleShot(int(last) + 1500, qApp, [engine] {
+            // The event log on stdout (JSON lines) makes replays assertable in tests.
+            for (const auto &e : engine->diagnostics(false).value(QStringLiteral("eventLog")).toArray())
+                std::fputs((QJsonDocument(e.toObject()).toJson(QJsonDocument::Compact) + '\n').constData(), stdout);
+            std::fflush(stdout);
+            QCoreApplication::quit();
+        });
 }
 
 sigset_t terminationSignals()
@@ -141,8 +152,12 @@ int main(int argc, char **argv)
     DBusService dbus(&engine);
     QString err;
     if (!dbus.registerOnBus(&err)) {
-        qCritical("opendiald: %s", qPrintable(err));
-        return err.contains(QLatin1String("another")) ? 0 : 1;
+        // Replays are offline (tests, bug reports): no bus needed.
+        if (!p.isSet(replayOpt)) {
+            qCritical("opendiald: %s", qPrintable(err));
+            return err.contains(QLatin1String("another")) ? 0 : 1;
+        }
+        qWarning("opendiald: replaying without D-Bus (%s)", qPrintable(err));
     }
     installSignalHandlers(&app);
     engine.start();

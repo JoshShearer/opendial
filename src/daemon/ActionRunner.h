@@ -26,6 +26,7 @@ struct ActionContext {
     FocusContext focus;
     int depth = 0;
     bool fine = false;
+    bool dryRun = false;    // log instead of touching the system (internal actions still run)
 };
 
 struct ActionResult {

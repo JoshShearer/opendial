@@ -190,6 +190,7 @@ void Overlay::showMenu(const QJsonObject &menu)
     }
     if (!screen)
         return;
+    qCDebug(lcOverlay) << "menu at" << center << "on" << screen->name() << screen->geometry() << "placement" << placement;
     place(m_menu, screen, center - QPoint(size / 2, size / 2), false, {});
     m_menu->show();
 }

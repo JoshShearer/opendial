@@ -478,7 +478,9 @@ int main(int argc, char **argv)
         return status();
     if (cmd == QLatin1String("diagnose")) {
         const bool noRedact = args.contains(QStringLiteral("--no-redact"));
-        const int e = args.indexOf(QStringLiteral("--export"));
+        int e = args.indexOf(QStringLiteral("--export"));
+        if (e < 0)
+            e = args.indexOf(QStringLiteral("--out")); // same flag name as `record`
         if (e >= 0) {
             const QString path = QFileInfo(args.value(e + 1, QStringLiteral("opendial-diagnostics.json"))).absoluteFilePath();
             return simpleJson("ExportDiagnostics", {path, !noRedact});

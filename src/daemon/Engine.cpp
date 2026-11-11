@@ -359,16 +359,13 @@ void Engine::runSlot(const QString &slotName, int steps, int direction, bool fin
     QElapsedTimer t;
     t.start();
     ActionResult r;
-    if (m_opts.noInjection) {
-        r = ActionResult{true, QStringLiteral("dry-run"), false};
-    } else {
-        // Injection backends must never see input while suppressed.
-        if (m_suppressed)
-            m_inj->setSuppressed(false);
-        r = m_runner->run(action, ctx);
-        if (m_suppressed)
-            m_inj->setSuppressed(true);
-    }
+    ctx.dryRun = m_opts.noInjection;
+    // Injection backends must never see input while suppressed.
+    if (m_suppressed && !ctx.dryRun)
+        m_inj->setSuppressed(false);
+    r = m_runner->run(action, ctx);
+    if (m_suppressed && !ctx.dryRun)
+        m_inj->setSuppressed(true);
     m_lastActionLatencyUs = t.nsecsElapsed() / 1000;
     m_lastActionResult = (r.ok ? QStringLiteral("ok") : QStringLiteral("failed")) + (r.message.isEmpty() ? QString() : QStringLiteral(": ") + r.message);
     QJsonObject le{{QStringLiteral("kind"), QStringLiteral("action")}, {QStringLiteral("slot"), slotName},

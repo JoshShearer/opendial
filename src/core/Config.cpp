@@ -358,6 +358,24 @@ int JsonStore::rollback(QJsonObject &out, QString *error)
         QJsonObject o;
         QString e;
         if (QFile::exists(b.at(i)) && s.read(o, &e) && !o.isEmpty()) {
+            // Make the backup current (no new backup: rollback is undo, and
+            // repeated rollbacks walk further back), then drop the used ones.
+            QSaveFile sf(m_path);
+            if (!sf.open(QIODevice::WriteOnly)) {
+                if (error) *error = sf.errorString();
+                return -1;
+            }
+            sf.setPermissions(QFile::ReadOwner | QFile::WriteOwner);
+            sf.write(QJsonDocument(o).toJson(QJsonDocument::Indented));
+            if (!sf.commit()) {
+                if (error) *error = sf.errorString();
+                return -1;
+            }
+            for (int k = 0; k <= i; ++k)
+                QFile::remove(b.at(k));
+            for (int k = i + 1; k < b.size(); ++k)
+                if (QFile::exists(b.at(k)))
+                    QFile::rename(b.at(k), b.at(k - i - 1));
             out = o;
             return i + 1;
         }

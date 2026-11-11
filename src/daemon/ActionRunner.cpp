@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "ActionRunner.h"
+
+#include <QSet>
 #include "Action.h"
 #include "Engine.h"
 #include "InjectorManager.h"
@@ -167,8 +169,27 @@ ActionResult ActionRunner::run(const QJsonObject &a, const ActionContext &ctx)
     const QString type = str(a, "type", QStringLiteral("none"));
     const int steps = qMax(1, ctx.steps);
 
-    if (actionRisk(a) == Risk::NeedsApproval)
+    if (actionRisk(a) == Risk::NeedsApproval) {
+        if (ctx.dryRun) {
+            // same approval gate as a real run, but nothing is executed
+            if (!m_engine->isApproved(actionFingerprint(a))) {
+                m_engine->requestApproval(a, ctx.toolId, ctx.profileId);
+                return ActionResult{false, QStringLiteral("needs approval: ") + describeAction(a), true};
+            }
+            return ActionResult{true, QStringLiteral("dry-run"), false};
+        }
         return runRisky(a, ctx);
+    }
+    if (ctx.dryRun) {
+        // Actions with effects outside OpenDial are only logged; tool, profile,
+        // menu, value, haptic, OSD, plugin and macro/if logic still run.
+        static const QSet<QString> external{
+            QStringLiteral("key"), QStringLiteral("text"), QStringLiteral("mouse"), QStringLiteral("scroll"),
+            QStringLiteral("zoom"), QStringLiteral("volume"), QStringLiteral("mute"), QStringLiteral("media"),
+            QStringLiteral("brightness"), QStringLiteral("workspace")};
+        if (external.contains(type))
+            return ActionResult{true, QStringLiteral("dry-run"), false};
+    }
 
     if (type == QLatin1String("none"))
         return okr();

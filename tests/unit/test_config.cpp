@@ -106,6 +106,26 @@ private Q_SLOTS:
         QCOMPARE(fi.permissions() & (QFile::ReadOther | QFile::WriteOther | QFile::ReadGroup), QFile::Permissions());
     }
 
+    void rollbackWalksBack()
+    {
+        JsonStore s(path("rb/config.json"), 5);
+        QString err;
+        for (int v = 1; v <= 4; ++v)
+            QVERIFY2(s.write(QJsonObject{{QStringLiteral("v"), v}}, &err), qPrintable(err));
+        QJsonObject o;
+        QCOMPARE(s.rollback(o, &err), 1);
+        QCOMPARE(o.value(QStringLiteral("v")).toInt(), 3);
+        QVERIFY(s.read(o, &err));
+        QCOMPARE(o.value(QStringLiteral("v")).toInt(), 3); // the file itself was restored
+        QCOMPARE(s.rollback(o, &err), 1);
+        QCOMPARE(o.value(QStringLiteral("v")).toInt(), 2);
+        QCOMPARE(s.rollback(o, &err), 1);
+        QCOMPARE(o.value(QStringLiteral("v")).toInt(), 1);
+        QCOMPARE(s.rollback(o, &err), -1); // nothing older
+        QVERIFY(s.read(o, &err));
+        QCOMPARE(o.value(QStringLiteral("v")).toInt(), 1);
+    }
+
     void refusesSymlinkTarget()
     {
         const QString target = path("elsewhere.json");
