@@ -74,18 +74,27 @@ The Ubuntu run found a real bug, fixed in b5b80db. As root with
 - Idle CPU: 0 scheduler ticks over 10 s.
 - Event-to-action latency is recorded per action (`latencyUs` in the event log). It has not yet been measured with hardware input.
 
-### Physical hardware
+### Physical hardware (reference machine, Hyprland 0.56.2, 2026-11-10)
+
+Surface Dial `usb:v045Ep091Bd0108`, kernel 7.2.15, Qt 6.12, development build
+(`build/`), throwaway config. udev rule installed by the user (hidraw writable).
 
 | Check | Result |
 |---|---|
-| Pair and trust through BlueZ | **done**: Paired: yes, Trusted: yes |
-| Identity | modalias `usb:v045Ep091Bd0108`; GATT HID + Battery services |
-| Connected state and battery | BlueZ reported Connected: yes and battery 99 % during one session |
-| Rotation / click / long-press capture | **blocked**: the Dial went to sleep and was not reconnected during the session |
-| Haptics | **blocked**: hidraw is root-only until the packaged udev rule is installed (needs the admin) |
-| Reconnect, sleep/resume, reboot | **not run** |
+| Pair and trust through BlueZ | **pass**: Paired: yes, Trusted: yes |
+| Rotation capture | **pass**: `REL_DIAL` ±1 per detent, one action per detent |
+| Click / long press | **pass**: `BTN_0` down/up; hold opens the menu |
+| Menu: turn to highlight, click to select | **pass**: haptic tick per item, the selected tool stays active, no action leaked to the app |
+| Press-and-turn | **pass** when turning starts before the long-press threshold |
+| Haptics | **pass**: ticks felt; feature report read back (resolution 12 requested = 12 applied) |
+| Reconnect after a battery pull | **pass**, no duplicate actions |
+| Built-in tools, real mode | **pass** (tester): Volume, Scroll, Zoom, Undo, Brightness, Media |
+| Direction | **pass** (tester): volume and workspaces move the expected way for each direction |
+| Workspaces | **fail, then pass**: Hyprland 0.56 rejects `dispatch workspace e+1` (its dispatch is Lua now) and the error was counted as success. Fixed in cdaec8c; the tester confirmed switching works |
+| System theme | **pass** (tester): the menu followed the Omarchy theme, including live theme switches |
+| Suspend/resume, out of range, reboot, soak (§3) | **not run** |
 
-**Hardware verdict: not verified.** Run [tests/hardware/README.md](tests/hardware/README.md).
+**Hardware verdict: core Dial behaviour verified on Hyprland.** The SRS target desktops (GNOME, KDE, COSMIC, X11) are still untested.
 
 ### Not run anywhere yet
 
