@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.opendial.OpenDial</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>OpenDial</name>
+  <summary>Microsoft Surface Dial support for Linux</summary>
+  <description>
+    <p>
+      OpenDial turns the Microsoft Surface Dial into a programmable controller on Linux:
+      press and hold for a radial tool menu, turn to adjust volume, scroll, zoom, undo,
+      brightness and media, or define your own tools with separate clockwise,
+      counter-clockwise and click actions.
+    </p>
+    <ul>
+      <li>Radial menu with built-in and custom tools, folders and icons</li>
+      <li>Per-app profiles that switch automatically with the focused window</li>
+      <li>Haptic feedback, sensitivity, acceleration and handedness</li>
+      <li>Macros, value tools and approved command/D-Bus/OSC actions</li>
+      <li>Plugin API for apps such as Krita, a CLI and a D-Bus API</li>
+    </ul>
+    <p>Not affiliated with Microsoft. “Surface” is a trademark of Microsoft Corporation.</p>
+  </description>
+  <launchable type="desktop-id">io.github.opendial.OpenDial.desktop</launchable>
+  <url type="homepage">https://github.com/opendial/opendial</url>
+  <url type="bugtracker">https://github.com/opendial/opendial/issues</url>
+  <developer id="io.github.opendial"><name>OpenDial contributors</name></developer>
+  <content_rating type="oars-1.1"/>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <provides>
+    <binary>opendial</binary>
+    <binary>opendiald</binary>
+    <binary>opendialctl</binary>
+    <modalias>hid:b0005g*v0000045Ep0000091B</modalias>
+  </provides>
+  <releases>
+    <release version="0.9.0" date="2026-11-10">
+      <description><p>First release candidate.</p></description>
+    </release>
+  </releases>
+</component>

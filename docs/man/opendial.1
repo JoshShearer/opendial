@@ -1,0 +1,22 @@
+.TH OPENDIAL 1 "2026-11-10" "OpenDial 0.9.0" "User Commands"
+.SH NAME
+opendial \- settings for the Microsoft Surface Dial
+.SH SYNOPSIS
+.B opendial
+[\fB\-\-page\fR \fIname\fR]
+.SH DESCRIPTION
+.B opendial
+is the graphical configuration app for
+.BR opendiald (1):
+pair the Dial, arrange the radial menu, create tools with separate clockwise,
+counter-clockwise and click actions, set up per-app profiles, tune rotation and
+haptics, review approvals and plugins, and export diagnostics.
+Changes apply immediately. Starting it again raises the existing window.
+.SH OPTIONS
+.TP
+.BI \-\-page " name"
+Open on \fIdashboard\fR, \fImenu\fR, \fIprofiles\fR, \fIrotation\fR, \fIdevice\fR,
+\fIintegrations\fR, \fIdiagnostics\fR or \fIsettings\fR.
+.SH SEE ALSO
+.BR opendiald (1),
+.BR opendialctl (1)

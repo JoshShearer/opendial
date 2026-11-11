@@ -1,0 +1,85 @@
+.TH OPENDIALCTL 1 "2026-11-10" "OpenDial 0.9.0" "User Commands"
+.SH NAME
+opendialctl \- control and inspect the OpenDial Surface Dial service
+.SH SYNOPSIS
+.B opendialctl
+[\fB\-\-json\fR] \fIcommand\fR [\fIargs\fR]
+.SH DESCRIPTION
+.B opendialctl
+talks to
+.BR opendiald (1)
+over the session D-Bus API. With \fB\-\-json\fR every command prints machine-readable JSON.
+.SH COMMANDS
+.SS Status
+.TP
+.B status
+Device, battery, haptics, active profile and tool, injection and focus capabilities.
+.TP
+.B diagnose \fR[\fB\-\-export\fR|\fB\-\-out\fR \fIFILE\fR] [\fB\-\-no\-redact\fR]
+Full diagnostic report. Redacted by default (no Bluetooth addresses, window titles or paths).
+Exported files are written with mode 0600 inside your home, /tmp or the runtime directory only.
+.TP
+.B devices
+Surface Dial input and hidraw nodes and whether they are accessible.
+.TP
+.B watch \fR[\fB\-\-raw\fR] [\fB\-\-seconds\fR \fIN\fR]
+Stream gesture (and raw evdev) events as JSON lines.
+.TP
+.B record \fIFILE\fR [\fB\-\-seconds\fR \fIN\fR]
+Record raw events to a replay fixture.
+.SS Tools and profiles
+.TP
+.B tools
+Tools in the current radial menu.
+.TP
+.B tool \fIID\fR
+Make \fIID\fR the active tool.
+.TP
+.B profiles
+List profiles.
+.TP
+.B profile lock \fR[\fIID\fR] | \fBunlock\fR
+Pin a profile regardless of the focused app.
+.TP
+.B menu open\fR|\fBclose
+Show or hide the radial menu.
+.SS Configuration
+.TP
+.B config path\fR|\fBget\fR|\fBvalidate \fR[\fIFILE\fR]|\fBset \fIFILE\fR|\fBreset\fR|\fBrollback
+\fBvalidate\fR works without the service. \fBrollback\fR restores the previous configuration; repeat to go further back.
+.TP
+.B import \fIFILE\fR / \fBexport \fIID\fR [\fIFILE\fR]
+Import or export a profile. Imported commands, launches, D-Bus and OSC actions stay disabled until approved.
+.TP
+.B approvals\fR, \fBapprove \fIFINGERPRINT\fR, \fBrevoke \fIFINGERPRINT\fR
+Review and approve actions that run programs or contact other services.
+.TP
+.B plugins\fR, \fBplugin allow\fR|\fBdeny \fIAPPID\fR
+Registered app integrations and their consent.
+.SS Device
+.TP
+.B test haptics \fR[\fBclick\fR|\fBbuzz\fR|\fBrumble\fR]
+.TP
+.B bluetooth status\fR|\fBdiscover\fR|\fBstop\-discovery\fR|\fBpair\fR|\fBconnect\fR|\fBdisconnect\fR|\fBtrust\fR|\fBremove \fR[\fIPATH\fR]
+Pair and manage the Dial through BlueZ.
+.TP
+.B reconnect\fR, \fBportal\fR, \fBpause\fR, \fBresume
+.SS Simulation
+.TP
+.B simulate click \fR[\fIN\fR] | \fBpress\fR | \fBrelease\fR | \fBlongpress\fR | \fBrotate \fIDEGREES\fR | \fBjson \fI'{...}'\fR
+Drive the service without hardware.
+.TP
+.B context \fIAPPID\fR [\fITITLE\fR] | \fBcontext clear
+Pretend an app is focused (profile testing).
+.SH EXIT STATUS
+0 success, 1 failure, 2 usage error, 3 service not running.
+.SH EXAMPLES
+.nf
+opendialctl status
+opendialctl --json tools
+opendialctl simulate longpress; opendialctl simulate rotate 20; opendialctl simulate click
+opendialctl diagnose --export ~/opendial-report.json
+.fi
+.SH SEE ALSO
+.BR opendial (1),
+.BR opendiald (1)

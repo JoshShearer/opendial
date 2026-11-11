@@ -1,0 +1,14 @@
+# OpenDial OPTIONAL uinput access (NOT installed by default).
+#
+# Only needed on desktops where neither the Wayland virtual-keyboard protocol,
+# the RemoteDesktop portal nor X11 XTest is available. Granting it lets ANY
+# program run by the active-seat user create virtual keyboards and mice
+# (see docs/security-threat-model.md, threat T7). Prefer the portal.
+#
+# To opt in:
+#   sudo install -m644 /usr/share/opendial/udev/71-opendial-uinput-optin.rules.example \
+#        /etc/udev/rules.d/71-opendial-uinput.rules
+#   sudo udevadm control --reload && sudo udevadm trigger /dev/uinput
+#   then enable Settings → Integrations → "Allow uinput".
+# To undo: delete the file and run the two udevadm commands again.
+KERNEL=="uinput", SUBSYSTEM=="misc", OPTIONS+="static_node=uinput", TAG+="uaccess"

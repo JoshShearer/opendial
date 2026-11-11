@@ -37,7 +37,7 @@ const char *kUsage = R"(Usage: opendialctl [--json] <command> [args]
 
 Status
   status                       device, profile, tool, capabilities
-  diagnose [--export FILE] [--no-redact]
+  diagnose [--export|--out FILE] [--no-redact]
                                full diagnostic report (redacted by default)
   devices                      Surface Dial input/hidraw nodes and permissions
   watch [--raw] [--seconds N]  stream gesture (and raw evdev) events as JSON lines

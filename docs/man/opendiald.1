@@ -1,0 +1,72 @@
+.TH OPENDIALD 1 "2026-11-10" "OpenDial 0.9.0" "User Commands"
+.SH NAME
+opendiald \- Surface Dial service: radial menu, tools, profiles and haptics
+.SH SYNOPSIS
+.B opendiald
+[\fIoptions\fR]
+.SH DESCRIPTION
+.B opendiald
+runs in the user session, reads the Microsoft Surface Dial through evdev,
+drives its haptics through hidraw, shows the radial menu and performs the
+actions of the active tool. It is normally started by the systemd user unit
+.B opendial.service
+or by D-Bus activation and is configured with
+.BR opendial (1)
+or
+.BR opendialctl (1).
+Only one instance runs per session (D-Bus name \fBio.github.opendial\fR).
+.PP
+It never runs as root. Device access is granted to the active seat user by the
+udev rule \fB70-opendial-surface-dial.rules\fR.
+.SH OPTIONS
+.TP
+.B \-\-no\-device
+Do not open the Surface Dial; input only comes from simulation.
+.TP
+.B \-\-no\-context
+Do not track the focused window (app profiles only change when locked).
+.TP
+.B \-\-dry\-run
+Log actions instead of sending keys, scrolling, volume changes or running
+programs. Tool, profile and menu logic still run.
+.TP
+.B \-\-no\-overlay
+Do not show the radial menu or on-screen feedback.
+.TP
+.B \-\-no\-tray
+Do not show a tray icon.
+.TP
+.BI \-\-config " path"
+Use \fIpath\fR instead of \fI$XDG_CONFIG_HOME/opendial/config.json\fR.
+.TP
+.BI \-\-state " path"
+Use \fIpath\fR instead of \fI$XDG_STATE_HOME/opendial/state.json\fR.
+.TP
+.BI \-\-replay " file"
+Feed a recorded fixture (JSON lines or evtest text) through the decoder and engine.
+.TP
+.BI \-\-replay\-speed " x"
+Replay speed factor (gesture timing is wall clock: use 1 for long presses).
+.TP
+.B \-\-exit\-after\-replay
+Print the event log as JSON lines and exit when the replay finished.
+.TP
+.B \-\-verbose
+Debug logging.
+.SH FILES
+.TP
+.I $XDG_CONFIG_HOME/opendial/config.json
+Tools, profiles and settings (validated, written atomically, five backups).
+.TP
+.I $XDG_STATE_HOME/opendial/state.json
+Active tool per profile, locked profile, approvals, plugin consent.
+.TP
+.I /usr/lib/udev/rules.d/70-opendial-surface-dial.rules
+Device access for the active seat user.
+.SH EXIT STATUS
+0 on normal exit (also when another instance already runs), 1 on startup
+failure, 2 for an unreadable replay fixture.
+.SH SEE ALSO
+.BR opendial (1),
+.BR opendialctl (1),
+.BR systemctl (1)

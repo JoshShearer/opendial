@@ -18,6 +18,8 @@
 #include <QJsonDocument>
 #include <QTimer>
 #include <cstdio>
+#include <functional>
+#include <vector>
 
 #include <csignal>
 #include <pthread.h>
@@ -47,32 +49,54 @@ void replay(Engine *engine, const QString &path, double speed, bool quitAfter, i
         QMetaObject::invokeMethod(qApp, [] { QCoreApplication::exit(2); }, Qt::QueuedConnection);
         return;
     }
-    auto decoder = std::make_shared<DialDecoder>();
-    qint64 t0 = -1, last = 0;
+    // Events are chained: each one is scheduled after the previous one ran,
+    // so recorded gaps (e.g. a long-press hold) survive a busy event loop.
+    struct Step {
+        FixtureLine line;
+        int delayMs; // after the previous step
+    };
+    auto steps = std::make_shared<std::vector<Step>>();
+    qint64 prevUs = -1;
     for (const auto &l : lines) {
-        const qint64 t = l.event.timeUs;
-        if (l.kind == FixtureLine::Event && t0 < 0)
-            t0 = t;
-        const qint64 at = l.kind == FixtureLine::Event ? qint64((t - t0) / 1000.0 / speed) : last;
-        last = at;
-        QTimer::singleShot(int(qMax<qint64>(0, at)), engine, [engine, decoder, l, guardMs] {
-            if (l.kind == FixtureLine::Connect)
-                decoder->onConnected(l.event.timeUs, guardMs);
-            else if (l.kind == FixtureLine::Disconnect)
-                decoder->reset();
-            else
-                for (const auto &s : decoder->feed(l.event))
-                    engine->onDialSignal(s);
-        });
+        int delay = 0;
+        if (l.kind == FixtureLine::Event) {
+            if (prevUs >= 0)
+                delay = int(qBound<qint64>(0, qint64((l.event.timeUs - prevUs) / 1000.0 / speed), qint64(60000)));
+            prevUs = l.event.timeUs;
+        }
+        steps->push_back({l, delay});
     }
-    if (quitAfter)
-        QTimer::singleShot(int(last) + 1500, qApp, [engine] {
-            // The event log on stdout (JSON lines) makes replays assertable in tests.
-            for (const auto &e : engine->diagnostics(false).value(QStringLiteral("eventLog")).toArray())
-                std::fputs((QJsonDocument(e.toObject()).toJson(QJsonDocument::Compact) + '\n').constData(), stdout);
-            std::fflush(stdout);
-            QCoreApplication::quit();
-        });
+    auto decoder = std::make_shared<DialDecoder>();
+    // Pending timers hold the strong reference; the function itself only a
+    // weak one, so the chain frees itself after the last step.
+    auto next = std::make_shared<std::function<void(size_t)>>();
+    std::weak_ptr<std::function<void(size_t)>> weak = next;
+    *next = [engine, decoder, steps, weak, quitAfter, guardMs](size_t i) {
+        if (i >= steps->size()) {
+            if (quitAfter)
+                QTimer::singleShot(1500, qApp, [engine] {
+                    // The event log on stdout (JSON lines) makes replays assertable in tests.
+                    for (const auto &e : engine->diagnostics(false).value(QStringLiteral("eventLog")).toArray())
+                        std::fputs((QJsonDocument(e.toObject()).toJson(QJsonDocument::Compact) + '\n').constData(), stdout);
+                    std::fflush(stdout);
+                    QCoreApplication::quit();
+                });
+            return;
+        }
+        const auto &l = steps->at(i).line;
+        if (l.kind == FixtureLine::Connect)
+            decoder->onConnected(l.event.timeUs, guardMs);
+        else if (l.kind == FixtureLine::Disconnect)
+            decoder->reset();
+        else
+            for (const auto &s : decoder->feed(l.event))
+                engine->onDialSignal(s);
+        const int delay = i + 1 < steps->size() ? steps->at(i + 1).delayMs : 0;
+        if (auto self = weak.lock())
+            QTimer::singleShot(delay, engine, [self, i] { (*self)(i + 1); });
+    };
+    // start once the event loop runs and startup work is done
+    QTimer::singleShot(300, engine, [next] { (*next)(0); });
 }
 
 sigset_t terminationSignals()

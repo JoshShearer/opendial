@@ -1,0 +1,15 @@
+# OpenDial: give the user at the active seat access to the Microsoft Surface Dial.
+#
+# Matches ONLY the verified Surface Dial IDs (Bluetooth LE HID, bus 0005,
+# vendor 045E, product 091B). Access is granted through systemd-logind
+# "uaccess" ACLs: only the locally logged-in, active user gets it, and it is
+# revoked on logout or seat switch. No group, no world-writable nodes, no
+# other HID devices.
+#
+# hidraw: haptic feedback (feature/output report 1). Read access also exposes
+# the raw input reports of this one device.
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", KERNELS=="0005:045E:091B.*", TAG+="uaccess"
+
+# evdev: rotation and button ("Surface Dial System Multi Axis"). OpenDial may
+# take an exclusive grab so the desktop does not also act on it.
+SUBSYSTEM=="input", KERNEL=="event*", ATTRS{id/bustype}=="0005", ATTRS{id/vendor}=="045e", ATTRS{id/product}=="091b", TAG+="uaccess"
