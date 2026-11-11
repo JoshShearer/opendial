@@ -11,7 +11,7 @@
 - [ ] Pop!_OS COSMIC: check for a focus protocol and RemoteDesktop portal; otherwise publish the limitation.
 - [ ] Observe scroll delivery through `zwlr_virtual_pointer_v1`.
 - [ ] Run the Krita plugin inside Krita 5.2.
-- [ ] Compile the Rust example (`cargo build` in `plugins/examples/rust`).
+- [x] Rust example compiles (container). - [ ] Run it against a live daemon.
 - [ ] Check the starter profiles' shortcuts against current Blender, GIMP, Inkscape, FreeCAD and Kdenlive versions.
 - [ ] 8 h soak and 50-cycle reconnect on hardware (SRS §14.7).
 - [ ] Latency on hardware: median ≤ 20 ms, p95 ≤ 50 ms (`latencyUs` in the event log).

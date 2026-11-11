@@ -85,4 +85,4 @@ The Ubuntu run found a real bug, fixed in b5b80db. As root with
 
 - GNOME (extension, portal), KDE (KWin script, portal), COSMIC, X11 sessions.
 - Krita plugin inside Krita.
-- Rust example (no cargo).
+- Rust example against a live daemon. It does compile (`cargo build`, rust:1-slim container).
