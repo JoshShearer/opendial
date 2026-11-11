@@ -12,7 +12,6 @@ pkgbase = opendial
 	makedepends = cmake
 	makedepends = ninja
 	makedepends = wayland-protocols
-	makedepends = qt6-tools
 	depends = qt6-base
 	depends = qt6-declarative
 	depends = qt6-svg
