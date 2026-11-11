@@ -61,7 +61,7 @@ The Ubuntu run found a real bug, fixed in b5b80db. As root with
   - Setup: a real (not dry-run) daemon with a custom tool (CW = `a`, CCW = `Shift+b`, click = `Return`), and a foot terminal running `cat > file`.
   - Simulated input: +30°, −20°, click. The file contained `aaaBB\n` (`zwp_virtual_keyboard_v1`, layout read from Hyprland).
   - This run found and fixed a bug: Hyprland reports unset keyboard options as `[[EMPTY]]`, which broke the keymap, so all key injection on Hyprland failed.
-  - Pointer/scroll delivery (`zwlr_virtual_pointer_v1`) is advertised but not yet observed.
+  - Pointer/scroll delivery (`zwlr_virtual_pointer_v1`): observed later with the physical Dial (the Scroll tool scrolled a browser page; see Physical hardware).
 
 ### System theme (nested Hyprland on the reference machine)
 

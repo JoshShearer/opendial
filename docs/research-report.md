@@ -53,7 +53,7 @@ walkthrough (links in [SRS.md](SRS.md) §20).
   - Wayland clients cannot inject input by default.
   - Options: compositor protocols (`zwp_virtual_keyboard_v1`, `zwlr_virtual_pointer_v1`, offered by wlroots-based compositors, Hyprland and sometimes KWin), the xdg-desktop-portal **RemoteDesktop** interface (GNOME, KDE; it asks the user and supports restore tokens), or uinput (kernel-level, desktop-independent, privileged).
   - Decision: the order in [platform-capabilities.md](platform-capabilities.md).
-  - **local:** keys delivered on Hyprland through the virtual keyboard; pointer delivery not yet observed.
+  - **local:** keys and scroll delivered on Hyprland (virtual keyboard and virtual pointer), observed with the physical Dial.
 - **Focus:**
   - No portal exposes the focused app.
   - Each desktop has its own route: GNOME needs a Shell extension; KWin accepts scripts over D-Bus; wlroots has foreign-toplevel; Hyprland and Sway have IPC sockets; X11 has EWMH.
