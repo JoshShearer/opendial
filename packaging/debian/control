@@ -36,7 +36,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
          libqt6svg6,
          qt6-wayland
 Recommends: bluez, wireplumber | pulseaudio-utils, xdg-desktop-portal
-Suggests: brightnessctl, ddcutil, python3-gi, gnome-shell-extension-prefs
+Suggests: brightnessctl, ddcutil, python3-gi, gnome-shell-extension-prefs, python3, nodejs
 Description: Microsoft Surface Dial support: radial menu, tools, app profiles
  OpenDial turns the Microsoft Surface Dial into a programmable controller on
  Linux. Press and hold for a radial tool menu; turn to change volume, scroll,

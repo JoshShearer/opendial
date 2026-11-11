@@ -16,3 +16,9 @@ endif
 # dh_installsystemduser (debhelper 13) enables opendial.service for all users
 # via deb-systemd-helper --user; it starts at the next graphical login. User
 # units are never started from maintainer scripts (there is no session there).
+
+# The example plugins are templates to copy, not programs; node and python3
+# are only suggested, so the shipped copies must not be executable.
+override_dh_fixperms:
+	dh_fixperms
+	find debian/opendial/usr/share/opendial/plugins/examples -type f -exec chmod a-x {} +
