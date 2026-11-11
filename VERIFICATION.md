@@ -107,6 +107,7 @@ desktop session.
 |---|---|---|
 | KDE: KWin 6.8.2, Qt 6.12 | `tests/desktops/kwin-headless.sh` | **pass**: the KWin script bridge reports the focused window (app ID, exe, PID, desktop). KWin does not offer `zwp_virtual_keyboard_v1` to ordinary clients, so keys go through the RemoteDesktop portal, which needs a person to accept the prompt: not tested |
 | X11: Xvfb + Openbox | `tests/desktops/x11-xvfb.sh` | **pass**: the EWMH tracker reports the focused window; a real daemon typed `aaaBB` + Enter into an xterm through XTest |
+| Krita 6.0.4 (PyQt6) on Xvfb | `tests/desktops/krita-xvfb.sh` | **fail, then pass**. The plugin crashed at startup on PyQt6 (`QDBusServiceWatcher.WatchForRegistration` is a scoped enum there); fixed. Then: it registered its four tools, and simulated turns changed the brush size (43 → 46 → 50 → 46 px), opacity (95 %, click → 100 %), canvas angle (5° → 15° → 10°) and zoom (107.7 %), confirmed in Krita's own toolbar. Also found the menu listing both the shortcut-based Krita tools and the plugin's; the plugin's now replace them (config v3) |
 | GNOME Shell 51 (mutter 51.1) | `tests/desktops/gnome-headless.sh` | **fail, then pass**. Found two bugs: the extension listed Shell 45–49 only, so Shell 50+ marked it out of date and never loaded it (the daemon also misreported that as "not enabled"); and windows without a `.desktop` file were reported as `window:N`, which no profile can match. Both fixed; the extension now reports the focused app |
 
 ### Reliability, simulated (2026-11-11)

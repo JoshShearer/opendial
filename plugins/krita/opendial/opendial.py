@@ -24,6 +24,11 @@ except ImportError:  # pragma: no cover
     from PyQt6.QtCore import QObject, pyqtSlot
     from PyQt6.QtDBus import QDBusConnection, QDBusInterface, QDBusServiceWatcher
 
+# PyQt6 only has scoped enums (WatchModeFlag.WatchForRegistration).
+_WATCH_REGISTRATION = getattr(QDBusServiceWatcher, "WatchForRegistration", None)
+if _WATCH_REGISTRATION is None:
+    _WATCH_REGISTRATION = QDBusServiceWatcher.WatchModeFlag.WatchForRegistration
+
 SERVICE = "io.github.opendial"
 PATH = "/io/github/opendial/Daemon"
 IFACE = "io.github.opendial.Daemon1"
@@ -72,7 +77,7 @@ class OpenDialExtension(Extension):
         self._receiver = _Receiver(self)
         self._bus.connect(SERVICE, PATH, IFACE, "PluginEvent", self._receiver.pluginEvent)
         # (re-)register whenever the OpenDial service starts
-        self._watcher = QDBusServiceWatcher(SERVICE, self._bus, QDBusServiceWatcher.WatchForRegistration)
+        self._watcher = QDBusServiceWatcher(SERVICE, self._bus, _WATCH_REGISTRATION)
         self._watcher.serviceRegistered.connect(lambda _name: self._register())
         self._register()
 

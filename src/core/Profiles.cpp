@@ -224,22 +224,30 @@ QJsonArray composeMenuTools(const QJsonArray &profiles, const QString &profileId
     const QJsonObject g = globalProfile(profiles);
     if (p.isEmpty())
         p = g;
+    QSet<QString> plugins;
+    for (const auto &v : extra) {
+        const QString a = v.toObject().value(QLatin1String("plugin")).toString();
+        if (!a.isEmpty())
+            plugins.insert(a);
+    }
     QJsonArray out;
     QSet<QString> ids;
     auto addAll = [&](const QJsonArray &tools) {
         for (const auto &v : tools) {
-            const QString id = v.toObject().value(QLatin1String("id")).toString();
-            if (ids.contains(id))
+            const QJsonObject t = v.toObject();
+            const QString id = t.value(QLatin1String("id")).toString();
+            const QString by = t.value(QLatin1String("replacedBy")).toString();
+            if (ids.contains(id) || (!by.isEmpty() && plugins.contains(by)))
                 continue;
             ids.insert(id);
             out.append(v);
         }
     };
     addAll(p.value(QLatin1String("tools")).toArray());
+    addAll(extra);
     if (p.value(QLatin1String("menuMode")).toString() == QLatin1String("extend")
         && p.value(QLatin1String("id")) != g.value(QLatin1String("id")))
         addAll(g.value(QLatin1String("tools")).toArray());
-    addAll(extra);
     return enabledTools(out);
 }
 

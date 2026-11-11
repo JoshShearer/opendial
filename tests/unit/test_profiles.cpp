@@ -141,6 +141,29 @@ private Q_SLOTS:
         QCOMPARE(withPlugin.size(), 3);
     }
 
+    void pluginReplacesShortcutTool()
+    {
+        auto brush = tool("brush");
+        brush.insert("replacedBy", "org.kde.krita");
+        QJsonObject krita{{"id", "krita"}, {"name", "Krita"}, {"enabled", true}, {"menuMode", "extend"},
+                          {"match", QJsonObject{{"kind", "app"}, {"appIds", QJsonArray{"krita"}}}},
+                          {"tools", QJsonArray{brush, tool("other")}}};
+        QJsonArray profiles{m_profiles.at(0), krita};
+        auto plug = tool("plugin:org.kde.krita:brush-size");
+        plug.insert("plugin", "org.kde.krita");
+        auto ids = [](const QJsonArray &a) { QStringList l; for (const auto &t : a) l << t.toObject().value("id").toString(); return l; };
+        // without the plugin: the shortcut tool stays
+        QCOMPARE(ids(composeMenuTools(profiles, "krita")).first(), QStringLiteral("brush"));
+        // with it: replaced, and the plugin tool comes before the global tools
+        const auto l = ids(composeMenuTools(profiles, "krita", QJsonArray{plug}));
+        QVERIFY(!l.contains("brush"));
+        QCOMPARE(l.mid(0, 2), (QStringList{"other", "plugin:org.kde.krita:brush-size"}));
+        // another plugin does not hide it
+        auto other = tool("plugin:x:y");
+        other.insert("plugin", "x");
+        QVERIFY(ids(composeMenuTools(profiles, "krita", QJsonArray{other})).contains("brush"));
+    }
+
     void defaultProfilesResolve()
     {
         const auto profiles = defaultConfig().value("profiles").toArray();

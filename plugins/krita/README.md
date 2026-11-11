@@ -10,8 +10,14 @@ through keyboard shortcuts:
 | Canvas zoom | ×1.1 per step | fit page |
 | Canvas angle | ± 5° | reset rotation |
 
-**Status:** written against the Krita 5.2 API and PyQt5/PyQt6 QtDBus, but not
-yet run inside Krita. Please report results.
+**Status:** tested in Krita 6.0.4 (PyQt6) with simulated Dial input: the
+tools register, and turning changes brush size, opacity, zoom and canvas angle.
+Written to work with Krita 5 (PyQt5) too, but not run there. Once you allow the
+plugin, it replaces the shortcut-based Krita tools in the menu.
+
+Krita's Python plugins need the Qt Python bindings. On Arch install
+`python-pyqt6` (Krita 6), otherwise Krita reports "Python cannot find the Qt6
+bindings".
 
 ## Install
 

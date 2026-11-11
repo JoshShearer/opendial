@@ -93,7 +93,7 @@ private Q_SLOTS:
         auto r = migrateConfig(v1);
         QVERIFY(r.ok);
         QVERIFY(r.changed);
-        QCOMPARE(r.config.value("version").toInt(), 2);
+        QCOMPARE(r.config.value("version").toInt(), kConfigVersion);
         QCOMPARE(r.config.value("settings").toObject().value("menu").toObject().value("accent").toString(), QStringLiteral("system"));
 
         // a colour the user picked stays
@@ -102,6 +102,36 @@ private Q_SLOTS:
         v1.insert("settings", settings);
         r = migrateConfig(v1);
         QCOMPARE(r.config.value("settings").toObject().value("menu").toObject().value("accent").toString(), QStringLiteral("#e0527a"));
+    }
+
+    void migrateV2KritaReplacedBy()
+    {
+        auto c = defaultConfig();
+        c.insert("version", 2);
+        QJsonArray profiles = c.value("profiles").toArray();
+        for (int i = 0; i < profiles.size(); ++i) {
+            auto p = profiles.at(i).toObject();
+            if (p.value("id") != "krita")
+                continue;
+            QJsonArray tools;
+            for (const auto &t : p.value("tools").toArray()) {
+                auto o = t.toObject();
+                o.remove("replacedBy");
+                tools.append(o);
+            }
+            p.insert("tools", tools);
+            profiles.replace(i, p);
+        }
+        c.insert("profiles", profiles);
+        auto r = migrateConfig(c);
+        QVERIFY(r.ok);
+        int replaced = 0;
+        for (const auto &p : r.config.value("profiles").toArray())
+            if (p.toObject().value("id") == "krita")
+                for (const auto &t : p.toObject().value("tools").toArray())
+                    replaced += t.toObject().value("replacedBy").toString() == QLatin1String("org.kde.krita");
+        QCOMPARE(replaced, 3);
+        QVERIFY(validateConfig(r.config).ok());
     }
 
     void menuThemeValidation()

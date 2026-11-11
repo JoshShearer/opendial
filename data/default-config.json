@@ -1,6 +1,6 @@
 {
   "schema": "opendial.config",
-  "version": 2,
+  "version": 3,
   "settings": {
     "gestures": {
       "longPressMs": 500,
@@ -223,7 +223,7 @@
       "defaultTool": "krita-brush",
       "tools": [
         {
-          "id": "krita-brush", "name": "Brush size", "icon": "brush", "enabled": true,
+          "id": "krita-brush", "replacedBy": "org.kde.krita", "name": "Brush size", "icon": "brush", "enabled": true,
           "rotation": { "detentDegrees": 6 }, "haptics": true,
           "bindings": {
             "rotate_cw": { "type": "key", "keys": "]" },
@@ -232,7 +232,7 @@
           }
         },
         {
-          "id": "krita-opacity", "name": "Opacity", "icon": "opacity", "enabled": true,
+          "id": "krita-opacity", "replacedBy": "org.kde.krita", "name": "Opacity", "icon": "opacity", "enabled": true,
           "rotation": { "detentDegrees": 10 }, "haptics": true,
           "bindings": {
             "rotate_cw": { "type": "key", "keys": "O" },
@@ -240,7 +240,7 @@
           }
         },
         {
-          "id": "krita-rotate", "name": "Rotate canvas", "icon": "rotate", "enabled": true,
+          "id": "krita-rotate", "replacedBy": "org.kde.krita", "name": "Rotate canvas", "icon": "rotate", "enabled": true,
           "rotation": { "detentDegrees": 15 }, "haptics": true,
           "bindings": {
             "rotate_cw": { "type": "key", "keys": "Ctrl+]" },

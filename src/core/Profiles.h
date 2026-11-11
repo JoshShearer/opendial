@@ -56,9 +56,12 @@ Resolution resolveProfile(const QJsonArray &profiles, const FocusContext &ctx, c
 QJsonObject profileById(const QJsonArray &profiles, const QString &id);
 QJsonObject globalProfile(const QJsonArray &profiles);
 
-// Tools offered in the menu for a profile: its own tools, followed by the
-// global tools when menuMode == "extend" (a profile tool with the same id
-// overrides the global one). Extra tools (from plugins) are appended.
+// Tools offered in the menu for a profile: its own tools, then extra tools
+// (from approved plugins, each carrying "plugin": appId), then the global
+// tools when menuMode == "extend" (a profile tool with the same id overrides
+// the global one). A tool with "replacedBy": appId is left out while that
+// plugin supplies tools, so a shortcut-based tool and the plugin's direct
+// version never both appear.
 QJsonArray composeMenuTools(const QJsonArray &profiles, const QString &profileId, const QJsonArray &extraTools = {});
 // Remove disabled tools / empty folders (recursively).
 QJsonArray enabledTools(const QJsonArray &tools);

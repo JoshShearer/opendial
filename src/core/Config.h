@@ -8,7 +8,7 @@
 
 namespace opendial {
 
-constexpr int kConfigVersion = 2;
+constexpr int kConfigVersion = 3;
 inline const QString kConfigSchema = QStringLiteral("opendial.config");
 inline const QString kProfileSchema = QStringLiteral("opendial.profile");
 

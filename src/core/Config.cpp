@@ -296,7 +296,34 @@ MigrationResult migrateConfig(const QJsonObject &input)
         r.changed = true;
         v = 2;
     }
-    // Future: if (v == 2) { ...; v = 3; }
+    if (v == 2) {
+        // v3: the starter Krita tools step aside for the Krita plugin's direct
+        // versions once that plugin is allowed ("replacedBy").
+        QJsonArray profiles = c.value(QLatin1String("profiles")).toArray();
+        for (int i = 0; i < profiles.size(); ++i) {
+            QJsonObject p = profiles.at(i).toObject();
+            if (p.value(QLatin1String("id")).toString() != QLatin1String("krita"))
+                continue;
+            QJsonArray tools = p.value(QLatin1String("tools")).toArray();
+            for (int j = 0; j < tools.size(); ++j) {
+                QJsonObject t = tools.at(j).toObject();
+                const QString id = t.value(QLatin1String("id")).toString();
+                if ((id == QLatin1String("krita-brush") || id == QLatin1String("krita-opacity") || id == QLatin1String("krita-rotate"))
+                    && !t.contains(QLatin1String("replacedBy"))) {
+                    t.insert(QStringLiteral("replacedBy"), QStringLiteral("org.kde.krita"));
+                    tools.replace(j, t);
+                }
+            }
+            p.insert(QStringLiteral("tools"), tools);
+            profiles.replace(i, p);
+            r.log << QStringLiteral("migrated v2 -> v3: Krita starter tools give way to the Krita plugin");
+        }
+        c.insert(QStringLiteral("profiles"), profiles);
+        c.insert(QStringLiteral("version"), 3);
+        r.changed = true;
+        v = 3;
+    }
+    // Future: if (v == 3) { ...; v = 4; }
     const auto merged = mergeDefaults(QJsonObject{{QStringLiteral("settings"), defaultSettings()}}, c);
     if (merged != c)
         r.changed = true;
