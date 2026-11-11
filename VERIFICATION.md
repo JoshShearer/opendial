@@ -93,7 +93,9 @@ Surface Dial `usb:v045Ep091Bd0108`, kernel 7.2.15, Qt 6.12, development build
 | Workspaces | **fail, then pass**: Hyprland 0.56 rejects `dispatch workspace e+1` (its dispatch is Lua now) and the error was counted as success. Fixed in cdaec8c; the tester confirmed switching works |
 | System theme | **pass** (tester): the menu followed the Omarchy theme, including live theme switches |
 | Out of range, 2026-11-11 (0.9.0 build) | **pass**: disconnected 06:38:31; back in range, reconnected and re-grabbed at 06:41:37 with the same daemon (no restart). Logged by `tests/hardware/reliability-log.sh` |
-| Suspend/resume, reboot, 50 reconnect cycles, 8 h idle soak (§3) | **not run** |
+| Suspend/resume, 2026-11-11 | **pass** (reconnect): lid closed 07:05, s2idle suspend for 1 h; on resume (08:05:26) the Dial reconnected and was re-grabbed by 08:05:29, same daemon PID. Input after resume not separately confirmed by the tester |
+| Unattended reconnects, 2026-11-11 06:33–09:05 | **pass so far**: 10 disconnect/reconnect cycles (out of range, Dial idle sleep, and short BLE link drops about every 5 min after resume, each back in ~1.3 s), every one re-grabbed, 0 daemon restarts; RSS 122.5 → 124.1 MB over 2.5 h |
+| Reboot, 50 reconnect cycles, 8 h idle soak (§3) | **not run** (soak and cycle count still accumulating) |
 
 **Hardware verdict: core Dial behaviour verified on Hyprland.** The SRS target desktops (GNOME, KDE, COSMIC, X11) are still untested.
 
