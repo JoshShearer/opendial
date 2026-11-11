@@ -1388,7 +1388,15 @@ QJsonObject Engine::diagnostics(bool redact) const
     dev.insert(QStringLiteral("unitsToDegrees"), unitsToDegrees());
     d.insert(QStringLiteral("device"), dev);
     d.insert(QStringLiteral("nodes"), m_device->scan());
-    d.insert(QStringLiteral("bluetooth"), m_bluez->toJson(redact));
+    QJsonObject bt = m_bluez->toJson(redact);
+    if (redact) {
+        // BlueZ object paths embed the device address (dev_AA_BB_CC_DD_EE_FF)
+        static const QRegularExpression addr(QStringLiteral("dev(_[0-9A-Fa-f]{2}){6}"));
+        QString j = QString::fromUtf8(QJsonDocument(bt).toJson(QJsonDocument::Compact));
+        j.replace(addr, QStringLiteral("dev_redacted"));
+        bt = QJsonDocument::fromJson(j.toUtf8()).object();
+    }
+    d.insert(QStringLiteral("bluetooth"), bt);
     d.insert(QStringLiteral("focus"), m_focus.toJson(redact));
     // Redacted exports keep only the action type: descriptions can contain
     // typed text, key sequences, command lines or URLs (SRS §12).
