@@ -92,7 +92,8 @@ Surface Dial `usb:v045Ep091Bd0108`, kernel 7.2.15, Qt 6.12, development build
 | Direction | **pass** (tester): volume and workspaces move the expected way for each direction |
 | Workspaces | **fail, then pass**: Hyprland 0.56 rejects `dispatch workspace e+1` (its dispatch is Lua now) and the error was counted as success. Fixed in cdaec8c; the tester confirmed switching works |
 | System theme | **pass** (tester): the menu followed the Omarchy theme, including live theme switches |
-| Suspend/resume, out of range, reboot, soak (§3) | **not run** |
+| Out of range, 2026-11-11 (0.9.0 build) | **pass**: disconnected 06:38:31; back in range, reconnected and re-grabbed at 06:41:37 with the same daemon (no restart). Logged by `tests/hardware/reliability-log.sh` |
+| Suspend/resume, reboot, 50 reconnect cycles, 8 h idle soak (§3) | **not run** |
 
 **Hardware verdict: core Dial behaviour verified on Hyprland.** The SRS target desktops (GNOME, KDE, COSMIC, X11) are still untested.
 
