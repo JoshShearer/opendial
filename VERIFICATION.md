@@ -106,7 +106,18 @@ desktop session.
 | Desktop | Script | Result |
 |---|---|---|
 | KDE: KWin 6.8.2, Qt 6.12 | `tests/desktops/kwin-headless.sh` | **pass**: the KWin script bridge reports the focused window (app ID, exe, PID, desktop). KWin does not offer `zwp_virtual_keyboard_v1` to ordinary clients, so keys go through the RemoteDesktop portal, which needs a person to accept the prompt: not tested |
+| X11: Xvfb + Openbox | `tests/desktops/x11-xvfb.sh` | **pass**: the EWMH tracker reports the focused window; a real daemon typed `aaaBB` + Enter into an xterm through XTest |
 | GNOME Shell 51 (mutter 51.1) | `tests/desktops/gnome-headless.sh` | **fail, then pass**. Found two bugs: the extension listed Shell 45–49 only, so Shell 50+ marked it out of date and never loaded it (the daemon also misreported that as "not enabled"); and windows without a `.desktop` file were reported as `window:N`, which no profile can match. Both fixed; the extension now reports the focused app |
+
+### Reliability, simulated (2026-11-11)
+
+| Check | Script | Result |
+|---|---|---|
+| 200 menu open → turn → select cycles plus tool turns (§3.2), dry run, overlay rendering offscreen | `tests/soak/menu-soak.sh build 200` | **pass**: the menu closed every cycle; RSS 64.6 → 64.9 MB (+232 kB); 15 s |
+| SIGKILL while holding a modifier (§3.4), nested Hyprland, real injection | `tests/hardware/nested-hyprland-sigkill.sh` | **fail, then pass**: after the kill, the next daemon's first key arrived with Alt still held (`ESC a`): Hyprland keeps a dead virtual keyboard's modifiers. The injector now clears modifiers before its first key; the terminal then received plain `aaa` |
+
+These use simulated input. The 8 h idle and the 50 Bluetooth reconnect cycles
+need the physical Dial and are still to do.
 
 ### Not run anywhere yet
 

@@ -89,6 +89,13 @@ bool WaylandInjector::sendKeycode(quint32 kc, bool down)
 {
     if (!m_kbd || kc < 8)
         return false;
+    if (!m_modsSynced) {
+        // A previous daemon killed mid-chord (SIGKILL, crash) can leave its
+        // modifiers latched in the compositor's seat (seen on Hyprland 0.56:
+        // the next key arrived with Alt). Start from "nothing held".
+        zwp_virtual_keyboard_v1_modifiers(m_kbd, 0, 0, 0, 0);
+        m_modsSynced = true;
+    }
     zwp_virtual_keyboard_v1_key(m_kbd, now(), kc - 8, down ? WL_KEYBOARD_KEY_STATE_PRESSED : WL_KEYBOARD_KEY_STATE_RELEASED);
     if (m_state) {
         xkb_state_update_key(m_state, kc, down ? XKB_KEY_DOWN : XKB_KEY_UP);

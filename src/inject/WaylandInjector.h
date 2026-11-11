@@ -43,6 +43,7 @@ private:
     zwlr_virtual_pointer_manager_v1 *m_ptrMgr = nullptr;
     zwlr_virtual_pointer_v1 *m_ptr = nullptr;
     xkb_state *m_state = nullptr;
+    bool m_modsSynced = false; // see sendKeycode
     QHash<quint32, int> m_levelModRefs; // modifiers we pressed for levels
 };
 
