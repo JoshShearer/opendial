@@ -75,3 +75,12 @@ Automated tests (`ctest`) never count as hardware evidence.
 - Arch KDE Plasma X11
 - Arch GNOME Wayland (optional)
 - Hyprland/Sway (reference, optional)
+
+## Reliability logger (physical Dial)
+
+`tests/hardware/reliability-log.sh [OUT.csv] [INTERVAL]` samples the installed
+service every few seconds: Dial connected/grabbed, opendiald PID, RSS and CPU
+time. Run it during the reconnect, out-of-range, suspend/resume and 8 h idle
+checks; on Ctrl+C it prints connect/disconnect counts, suspend gaps, daemon
+restarts and the RSS delta. It only reads, so it is safe against the real
+session. Only a run with the physical Dial counts as evidence.
