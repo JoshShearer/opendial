@@ -72,10 +72,13 @@ export default class OpenDialExtension extends Extension {
         const p = {source: 'gnome-shell'};
         if (w) {
             const app = this._tracker.get_window_app(w);
-            let appId = app?.get_id() ?? '';
+            // Windows without a matching .desktop file get a placeholder app
+            // ("window:N") that no profile can match: use the window's own
+            // application ID or class instead.
+            let appId = app && !app.is_window_backed() ? (app.get_id() ?? '') : '';
             if (appId.endsWith('.desktop'))
                 appId = appId.slice(0, -'.desktop'.length);
-            p.appId = appId || w.get_wm_class() || '';
+            p.appId = appId || w.get_sandboxed_app_id?.() || w.get_gtk_application_id?.() || w.get_wm_class() || '';
             p.windowClass = w.get_wm_class() ?? '';
             p.title = w.get_title() ?? '';
             p.pid = w.get_pid();

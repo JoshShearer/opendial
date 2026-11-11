@@ -96,6 +96,18 @@ Surface Dial `usb:v045Ep091Bd0108`, kernel 7.2.15, Qt 6.12, development build
 
 **Hardware verdict: core Dial behaviour verified on Hyprland.** The SRS target desktops (GNOME, KDE, COSMIC, X11) are still untested.
 
+### Desktop adapters in containers (simulated input, 2026-11-11)
+
+Clean `archlinux:latest` containers with the built package installed and the
+host GPU render node passed in. These cover OpenDial's per-desktop code
+against the real compositors. They are not hardware evidence and not a full
+desktop session.
+
+| Desktop | Script | Result |
+|---|---|---|
+| KDE: KWin 6.8.2, Qt 6.12 | `tests/desktops/kwin-headless.sh` | **pass**: the KWin script bridge reports the focused window (app ID, exe, PID, desktop). KWin does not offer `zwp_virtual_keyboard_v1` to ordinary clients, so keys go through the RemoteDesktop portal, which needs a person to accept the prompt: not tested |
+| GNOME Shell 51 (mutter 51.1) | `tests/desktops/gnome-headless.sh` | **fail, then pass**. Found two bugs: the extension listed Shell 45–49 only, so Shell 50+ marked it out of date and never loaded it (the daemon also misreported that as "not enabled"); and windows without a `.desktop` file were reported as `window:N`, which no profile can match. Both fixed; the extension now reports the focused app |
+
 ### Not run anywhere yet
 
 - GNOME (extension, portal), KDE (KWin script, portal), COSMIC, X11 sessions.

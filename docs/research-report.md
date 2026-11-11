@@ -94,6 +94,6 @@ Cost: no `cargo clippy`. In its place: `-Wall -Wextra` (optionally `-Werror`), Q
 
 1. Hardware: capture rotation and button fixtures, read the report descriptor, write and read back the feature report.
 2. COSMIC: check whether cosmic-comp offers a toplevel-info or virtual-keyboard protocol to clients, and whether xdg-desktop-portal-cosmic implements RemoteDesktop.
-3. GNOME 49: check the extension on the current Shell.
-4. KWin 6: confirm the virtual-keyboard protocol is advertised to unprivileged clients; otherwise the portal.
+3. GNOME: the extension was checked on GNOME Shell 51 headless (container); a real GNOME session is still to do.
+4. KWin 6: checked on 6.8.2: `zwp_virtual_keyboard_v1` is not offered to ordinary clients, so key injection uses the RemoteDesktop portal.
 5. App shortcuts in the starter profiles: check each against current app versions (SRS §8).

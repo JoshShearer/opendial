@@ -358,8 +358,12 @@ void BridgeTracker::checkGnomeExtension()
         info = qdbus_cast<QVariantMap>(r.arguments().first());
     m_installed = !info.isEmpty();
     const int st = info.value(QStringLiteral("state")).toInt();
+    // GNOME's ExtensionState: 1 enabled, 3 error, 4 out of date (the Shell is
+    // newer than the versions in metadata.json), others: not enabled.
     m_detail = !m_installed ? QStringLiteral("install & enable the OpenDial GNOME Shell extension for per-app profiles")
                : st == 1   ? QStringLiteral("extension enabled; waiting for first report")
+               : st == 3   ? QStringLiteral("extension failed to load: %1").arg(info.value(QStringLiteral("error")).toString())
+               : st == 4   ? QStringLiteral("extension does not support this GNOME Shell version; update OpenDial")
                            : QStringLiteral("extension installed but not enabled (gnome-extensions enable opendial@opendial.github.io)");
     Q_EMIT stateChanged();
 }
