@@ -1,0 +1,7 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+<qresource prefix="/opendial/overlay">
+  <file>RadialMenu.qml</file>
+  <file>Osd.qml</file>
+</qresource>
+</RCC>

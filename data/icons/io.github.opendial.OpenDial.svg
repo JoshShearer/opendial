@@ -1,0 +1,20 @@
+<!-- SPDX-License-Identifier: MIT -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9edf3"/>
+      <stop offset="1" stop-color="#aeb6c2"/>
+    </linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b9bff"/>
+      <stop offset="1" stop-color="#3355d6"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="64" cy="100" rx="50" ry="14" fill="#000" opacity=".18"/>
+  <path d="M14 64v20c0 11 22.4 20 50 20s50-9 50-20V64z" fill="url(#body)"/>
+  <ellipse cx="64" cy="64" rx="50" ry="20" fill="#f5f7fa"/>
+  <ellipse cx="64" cy="62" rx="40" ry="15" fill="url(#top)"/>
+  <path d="M64 47v9" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  <path d="M30 34a40 40 0 0 1 68 0" fill="none" stroke="#5b9bff" stroke-width="6" stroke-linecap="round" opacity=".85"/>
+  <path d="M92 26l7 9-11 1.5" fill="none" stroke="#5b9bff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>
+</svg>

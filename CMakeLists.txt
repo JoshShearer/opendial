@@ -18,7 +18,7 @@ option(OPENDIAL_WITH_WAYLAND "Build native Wayland virtual-input and toplevel ad
 option(OPENDIAL_WERROR "Treat warnings as errors" OFF)
 
 # Qt 6.4 is the floor: Ubuntu 24.04 LTS / Pop!_OS 24.04 ship Qt 6.4.2.
-find_package(Qt6 6.4 REQUIRED COMPONENTS Core DBus Gui Network Widgets Quick QuickControls2)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core DBus Gui Network Widgets Quick QuickControls2 Svg)
 if(OPENDIAL_BUILD_TESTS)
   find_package(Qt6 6.4 REQUIRED COMPONENTS Test)
 endif()
@@ -37,12 +37,9 @@ if(OPENDIAL_WITH_WAYLAND)
 endif()
 
 if(OPENDIAL_WITH_X11)
-  pkg_check_modules(X11DEPS IMPORTED_TARGET xcb xcb-ewmh x11 xtst)
+  pkg_check_modules(X11DEPS IMPORTED_TARGET x11 xtst)
   if(NOT X11DEPS_FOUND)
-    pkg_check_modules(X11DEPS IMPORTED_TARGET xcb x11 xtst)
-  endif()
-  if(NOT X11DEPS_FOUND)
-    message(WARNING "xcb/x11/xtst missing: X11 adapters disabled")
+    message(WARNING "x11/xtst missing: X11 adapters disabled")
     set(OPENDIAL_WITH_X11 OFF)
   endif()
 endif()
