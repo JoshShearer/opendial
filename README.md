@@ -58,7 +58,8 @@ systemctl --user enable --now opendial.service
 opendial            # or "OpenDial" from the application menu
 ```
 
-Pair the Dial: hold its button for about 5 s until the light pulses, then pair it in
+Pair the Dial: pull off the bottom cover and hold the pairing button next to the
+batteries for about 5 s until the LED flashes, then pair it in
 your desktop's Bluetooth settings or on the app's **Device** page. The first-run
 wizard checks permissions and walks you through a test turn and click.
 

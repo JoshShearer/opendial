@@ -4,10 +4,13 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLoggingCategory>
 #include <QProcess>
 #include <QRegularExpression>
 #include <QStandardPaths>
 #include <xkbcommon/xkbcommon.h>
+
+Q_LOGGING_CATEGORY(lcKeymap, "opendial.keymap")
 
 namespace opendial {
 
@@ -48,7 +51,9 @@ XkbLayoutSpec detectLayout(const QString &setting)
             p.start(QStringLiteral("hyprctl"), {QStringLiteral("-j"), QStringLiteral("getoption"), QString::fromLatin1(opt)});
             if (!p.waitForFinished(1000))
                 return QString();
-            return QJsonDocument::fromJson(p.readAllStandardOutput()).object().value(QLatin1String("str")).toString().trimmed();
+            const QString v = QJsonDocument::fromJson(p.readAllStandardOutput()).object().value(QLatin1String("str")).toString().trimmed();
+            // hyprctl reports unset string options as the literal "[[EMPTY]]"
+            return v == QLatin1String("[[EMPTY]]") ? QString() : v;
         };
         const QString l = get("input:kb_layout");
         if (!l.isEmpty()) {
@@ -107,6 +112,12 @@ bool Keymap::load(const XkbLayoutSpec &spec, QString *error)
     const QByteArray model = spec.model.toUtf8();
     xkb_rule_names names{"evdev", model.constData(), layout.constData(), variant.constData(), options.constData()};
     xkb_keymap *km = xkb_keymap_new_from_names(m_ctx, &names, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    if (!km && (!variant.isEmpty() || !options.isEmpty() || !model.isEmpty())) {
+        // A bad variant/option string must not cost the whole layout.
+        qCWarning(lcKeymap) << "keymap" << spec.layout << spec.variant << spec.options << "failed; retrying with the layout only";
+        xkb_rule_names plain{"evdev", nullptr, layout.constData(), nullptr, nullptr};
+        km = xkb_keymap_new_from_names(m_ctx, &plain, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    }
     if (!km) {
         if (error) *error = QStringLiteral("cannot compile XKB keymap for layout '%1'").arg(spec.layout);
         return false;

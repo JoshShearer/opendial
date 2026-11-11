@@ -1,0 +1,115 @@
+# SPDX-License-Identifier: MIT
+name: CI
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 4 * * 1"   # weekly: Arch is rolling
+permissions:
+  contents: read
+
+jobs:
+  arch:
+    name: Arch (Qt latest) build + tests
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Dependencies
+        run: |
+          pacman -Syu --noconfirm --needed base-devel git cmake ninja qt6-base qt6-declarative qt6-svg \
+            qt6-wayland qt6-tools layer-shell-qt wayland wayland-protocols libxkbcommon libx11 libxtst \
+            python python-gobject nodejs dbus
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DOPENDIAL_WERROR=ON
+          cmake --build build
+      - name: Test
+        run: QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure --timeout 180
+
+  ubuntu:
+    name: Ubuntu 24.04 (Qt 6.4 floor) build + tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends devscripts equivs python3-gi nodejs
+          sudo mk-build-deps -i -r -t 'apt-get -y --no-install-recommends' packaging/debian/control
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja
+          cmake --build build
+      - name: Test
+        run: QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure --timeout 180
+
+  sanitizers:
+    name: ASan + UBSan
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Dependencies
+        run: |
+          pacman -Syu --noconfirm --needed base-devel git cmake ninja qt6-base qt6-declarative qt6-svg \
+            qt6-wayland qt6-tools layer-shell-qt wayland wayland-protocols libxkbcommon libx11 libxtst \
+            python python-gobject nodejs dbus
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+          cmake --build build
+      - name: Test
+        env:
+          ASAN_OPTIONS: detect_leaks=0
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build --output-on-failure --timeout 300
+
+  package-deb:
+    name: .deb (build, lintian, install)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p dist && docker run --rm -v "$PWD":/src:ro -v "$PWD/dist":/out ubuntu:24.04 sh /src/packaging/docker/deb.sh
+      - uses: actions/upload-artifact@v4
+        with: { name: deb, path: dist/*.deb }
+
+  package-arch:
+    name: Arch package (makepkg, namcap, pacman)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p dist && docker run --rm -v "$PWD":/src:ro -v "$PWD/dist":/out archlinux:latest sh /src/packaging/docker/arch.sh
+      - uses: actions/upload-artifact@v4
+        with: { name: arch, path: "dist/*.pkg.tar.zst" }
+
+  lint:
+    name: Metadata and docs lint
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - run: pacman -Syu --noconfirm --needed git desktop-file-utils appstream groff nodejs python
+      - uses: actions/checkout@v4
+      - run: desktop-file-validate packaging/desktop/io.github.opendial.OpenDial.desktop
+      - run: appstreamcli validate --no-net packaging/desktop/io.github.opendial.OpenDial.metainfo.xml
+      - run: for m in docs/man/*.1; do LC_ALL=C.UTF-8 MANROFFSEQ='' groff -man -ww -z "$m"; done
+      - run: cp plugins/gnome-shell/opendial@opendial.github.io/extension.js /tmp/ext.mjs && node --check /tmp/ext.mjs
+      - run: python -c "import ast,sys; [ast.parse(open(f).read()) for f in sys.argv[1:]]" plugins/krita/opendial/*.py plugins/examples/python/*.py
+      - name: SPDX headers
+        run: |
+          missing=$(grep -rL "SPDX-License-Identifier" src tests plugins data/icons --include='*.cpp' --include='*.h' --include='*.qml' --include='*.svg' --include='*.py' --include='*.mjs' --include='*.rs' || true)
+          [ -z "$missing" ] || { echo "$missing"; exit 1; }
+      - name: .SRCINFO up to date
+        run: |
+          useradd -m b && chown -R b . && su b -c 'cd packaging/arch && makepkg --printsrcinfo' > /tmp/srcinfo
+          diff -u packaging/arch/.SRCINFO /tmp/srcinfo
+
+  rust-example:
+    name: Rust plugin example compiles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo build --manifest-path plugins/examples/rust/Cargo.toml
