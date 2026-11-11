@@ -1,0 +1,25 @@
+<RCC>
+  <qresource prefix="/opendial/ui">
+    <file alias="components/ActionEditor.qml">qml/components/ActionEditor.qml</file>
+    <file alias="components/Card.qml">qml/components/Card.qml</file>
+    <file alias="components/Icon.qml">qml/components/Icon.qml</file>
+    <file alias="components/KeyRecorder.qml">qml/components/KeyRecorder.qml</file>
+    <file alias="components/SettingCombo.qml">qml/components/SettingCombo.qml</file>
+    <file alias="components/SettingRow.qml">qml/components/SettingRow.qml</file>
+    <file alias="components/SettingSlider.qml">qml/components/SettingSlider.qml</file>
+    <file alias="components/SettingSwitch.qml">qml/components/SettingSwitch.qml</file>
+    <file alias="components/StatusPill.qml">qml/components/StatusPill.qml</file>
+    <file alias="Main.qml">qml/Main.qml</file>
+    <file alias="pages/DashboardPage.qml">qml/pages/DashboardPage.qml</file>
+    <file alias="pages/DevicePage.qml">qml/pages/DevicePage.qml</file>
+    <file alias="pages/DiagnosticsPage.qml">qml/pages/DiagnosticsPage.qml</file>
+    <file alias="pages/IntegrationsPage.qml">qml/pages/IntegrationsPage.qml</file>
+    <file alias="pages/MenuPage.qml">qml/pages/MenuPage.qml</file>
+    <file alias="pages/ProfilesPage.qml">qml/pages/ProfilesPage.qml</file>
+    <file alias="pages/RotationPage.qml">qml/pages/RotationPage.qml</file>
+    <file alias="pages/SettingsPage.qml">qml/pages/SettingsPage.qml</file>
+    <file alias="pages/ToolEditor.qml">qml/pages/ToolEditor.qml</file>
+    <file alias="Wizard.qml">qml/Wizard.qml</file>
+    <file alias="components/RadialMenu.qml">../daemon/qml/RadialMenu.qml</file>
+  </qresource>
+</RCC>

@@ -85,6 +85,7 @@ public:
     void haptic(hid::Waveform w, int repeat = 1);
     bool testHaptics(const QString &which);
     void setPaused(bool p);
+    void completeFirstRun();
     bool paused() const { return m_paused; }
     void reconnect();
     void requestPortalPermission();

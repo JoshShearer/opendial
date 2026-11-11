@@ -193,7 +193,7 @@ int status()
     out << "  Tool:        " << st.value(QStringLiteral("activeToolName")).toString() << " [" << st.value(QStringLiteral("activeTool")).toString() << "]\n";
     const QJsonObject focus = st.value(QStringLiteral("focus")).toObject();
     out << "  Focus:       " << (focus.value(QStringLiteral("appId")).toString().isEmpty() ? QStringLiteral("(unknown)") : focus.value(QStringLiteral("appId")).toString())
-        << " via " << caps.value(QStringLiteral("context")).toObject().value(QStringLiteral("tracker")).toString(QStringLiteral("none")) << '\n';
+        << " via " << caps.value(QStringLiteral("context")).toObject().value(QStringLiteral("active")).toString(QStringLiteral("none")) << '\n';
     out << "  Injection:   keyboard " << inj.value(QStringLiteral("keyboard")).toString() << " (" << inj.value(QStringLiteral("activeKeyboard")).toString()
         << "), pointer " << inj.value(QStringLiteral("pointer")).toString() << " (" << inj.value(QStringLiteral("activePointer")).toString() << ")\n";
     out << "  Audio:       " << caps.value(QStringLiteral("audio")).toObject().value(QStringLiteral("backend")).toString() << ' ' << capLine(caps.value(QStringLiteral("audio")).toObject()) << '\n';

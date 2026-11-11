@@ -197,12 +197,15 @@ void Engine::onDialSignal(const DialSignal &s)
 
 double Engine::unitsToDegrees() const
 {
+    // With hidraw access OpenDial sets the resolution itself, so it is exact.
+    if (m_device->hapticsAvailable())
+        return m_device->appliedMode().unitsToDegrees();
+    // Otherwise the device runs at its power-on resolution; a calibration
+    // (Rotation & haptics page) may correct the assumed default.
     const int override_ = obj(settings(), "device").value(QStringLiteral("unitsPerTurn")).toInt(0);
     if (override_ > 0)
         return 360.0 / override_;
-    if (m_device->hapticsAvailable())
-        return m_device->appliedMode().unitsToDegrees();
-    return 360.0 / 3600.0; // kernel default resolution (see docs/hardware-protocol.md)
+    return 360.0 / 3600.0; // assumed kernel default (see docs/hardware-protocol.md)
 }
 
 void Engine::feedButton(bool down, qint64 now)
@@ -616,6 +619,15 @@ void Engine::setPaused(bool p)
     saveState();
     updateSuppression();
     m_notifier->notify(p ? tr("OpenDial paused") : tr("OpenDial resumed"), p ? tr("The Surface Dial will not send any input.") : QString());
+}
+
+void Engine::completeFirstRun()
+{
+    if (!m_firstRun)
+        return;
+    m_firstRun = false;
+    saveState();
+    scheduleStateChanged();
 }
 
 void Engine::reconnect()

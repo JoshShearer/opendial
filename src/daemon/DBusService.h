@@ -42,6 +42,7 @@ public Q_SLOTS:
     void OpenMenu();
     void CloseMenu();
     void SetPaused(bool paused);
+    void CompleteFirstRun();
     bool TestHaptics(const QString &waveform);
     void Reconnect();
     void RequestPortalPermission();

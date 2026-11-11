@@ -141,6 +141,7 @@ void DBusService::UnlockProfile() { m_engine->unlockProfile(); }
 void DBusService::OpenMenu() { m_engine->menuOp(QStringLiteral("open")); }
 void DBusService::CloseMenu() { m_engine->menuOp(QStringLiteral("close")); }
 void DBusService::SetPaused(bool p) { m_engine->setPaused(p); }
+void DBusService::CompleteFirstRun() { m_engine->completeFirstRun(); }
 bool DBusService::TestHaptics(const QString &w) { return m_engine->testHaptics(w); }
 void DBusService::Reconnect() { m_engine->reconnect(); }
 void DBusService::RequestPortalPermission() { m_engine->requestPortalPermission(); }
