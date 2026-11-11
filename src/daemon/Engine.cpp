@@ -1297,8 +1297,11 @@ QJsonObject Engine::stateJson() const
     if (!battery)
         battery = m_bluez->battery();
     dev.insert(QStringLiteral("battery"), battery ? QJsonValue(*battery) : QJsonValue(QStringLiteral("not reported")));
+    QString hapticsError = m_device->hapticsError();
+    if (hapticsError.isEmpty() && !m_device->hapticsAvailable())
+        hapticsError = m_device->isConnected() ? QStringLiteral("hidraw node not writable") : QStringLiteral("Dial not connected");
     QJsonObject haptics{{QStringLiteral("available"), m_device->hapticsAvailable()},
-                        {QStringLiteral("error"), m_device->hapticsError()},
+                        {QStringLiteral("error"), hapticsError},
                         {QStringLiteral("appliedResolution"), applied.resolutionSteps},
                         {QStringLiteral("appliedAuto"), applied.autoHaptics},
                         {QStringLiteral("requestedResolution"), requested.resolutionSteps},
@@ -1329,6 +1332,7 @@ QJsonObject Engine::stateJson() const
         {QStringLiteral("focus"), m_focus.toJson(true)},
         {QStringLiteral("contextSimulated"), m_context->isSimulated()},
         {QStringLiteral("paused"), m_paused},
+        {QStringLiteral("dryRun"), m_opts.noInjection},
         {QStringLiteral("suppressed"), m_suppressed},
         {QStringLiteral("suppressReason"), m_suppressReason},
         {QStringLiteral("session"), m_session->toJson()},
