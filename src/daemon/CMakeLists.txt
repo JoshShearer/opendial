@@ -56,6 +56,10 @@ endif()
 if(OPENDIAL_HAVE_LAYERSHELL)
   list(APPEND SERVICE_DEFS OPENDIAL_HAVE_LAYERSHELL)
   list(APPEND SERVICE_LIBS LayerShellQt::Interface)
+  # 6.6 replaced setScreenConfiguration() with setWantsToBeOnActiveScreen()
+  if(LayerShellQt_VERSION VERSION_GREATER_EQUAL 6.6)
+    list(APPEND SERVICE_DEFS OPENDIAL_LAYERSHELL_ACTIVE_SCREEN_API)
+  endif()
 endif()
 
 # Everything except main(), so integration tests link the real service.

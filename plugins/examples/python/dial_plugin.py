@@ -71,7 +71,7 @@ def main():
         gi.require_version("GLibUnix", "2.0")
         from gi.repository import GLibUnix
         add_signal = GLibUnix.signal_add
-    except (ImportError, ValueError):
+    except (ImportError, ValueError, AttributeError):  # older PyGObject has GLibUnix without signal_add
         add_signal = GLib.unix_signal_add
     for sig in (signal.SIGINT, signal.SIGTERM):
         add_signal(GLib.PRIORITY_DEFAULT, sig, loop.quit)

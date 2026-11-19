@@ -81,7 +81,11 @@ QQuickView *Overlay::createView(const QString &qml, const QString &scope)
         lw->setExclusiveZone(-1);
         lw->setScope(scope);
         lw->setAnchors(LayerShellQt::Window::Anchors(LayerShellQt::Window::AnchorTop | LayerShellQt::Window::AnchorLeft));
+#ifdef OPENDIAL_LAYERSHELL_ACTIVE_SCREEN_API
+        lw->setWantsToBeOnActiveScreen(false); // use the QWindow's screen
+#else
         lw->setScreenConfiguration(LayerShellQt::Window::ScreenFromQWindow);
+#endif
         lw->setActivateOnShow(false);
     }
 #else

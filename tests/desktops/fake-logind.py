@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 # Minimal org.freedesktop.login1 stand-in so GNOME Shell starts in a container
 # without systemd. Test scaffolding only: it answers the few calls the Shell
 # makes at startup and nothing else.

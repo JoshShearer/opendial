@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Adds a 'typer' test tool (CW = a, CCW = Shift+b, click = Return) to a config file."""
 import json
 import sys
