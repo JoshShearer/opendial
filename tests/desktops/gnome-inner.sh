@@ -2,7 +2,7 @@
 # Runs inside the container's private session bus (see gnome-headless.sh).
 set -u
 gsettings set org.gnome.shell disable-user-extensions false
-gsettings set org.gnome.shell enabled-extensions "['opendial@opendial.github.io']"
+gsettings set org.gnome.shell enabled-extensions "['opendial@joshshearer.github.io']"
 gnome-shell --version
 gnome-shell --unsafe-mode --headless --wayland --virtual-monitor 1280x800 > /out/shell.log 2>&1 &
 sleep 10
@@ -16,7 +16,7 @@ sleep 4
 gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval \
   "global.display.list_all_windows().find(w => w.get_wm_class() === 'opendial-test-term').activate(global.get_current_time())" > /out/eval.txt 2>&1
 sleep 2
-gnome-extensions info opendial@opendial.github.io > /out/ext.txt 2>&1
+gnome-extensions info opendial@joshshearer.github.io > /out/ext.txt 2>&1
 gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell/Introspect -m org.gnome.Shell.Introspect.GetWindows > /out/windows.txt 2>&1
 opendialctl --json status > /out/status.json
 kill $D; wait $D 2>/dev/null

@@ -154,9 +154,9 @@ int main(int argc, char **argv)
     QApplication::setQuitOnLastWindowClosed(false);
     QApplication app(argc, argv);
     QApplication::setApplicationName(QStringLiteral("opendiald"));
-    QApplication::setOrganizationDomain(QStringLiteral("opendial.github.io"));
+    QApplication::setOrganizationDomain(QStringLiteral("joshshearer.github.io"));
     QApplication::setApplicationVersion(QStringLiteral(OPENDIAL_VERSION));
-    QApplication::setDesktopFileName(QStringLiteral("io.github.opendial.OpenDial"));
+    QApplication::setDesktopFileName(QStringLiteral("io.github.joshshearer.opendial.OpenDial"));
 
     QCommandLineParser p;
     p.setApplicationDescription(QStringLiteral("OpenDial Surface Dial service"));

@@ -30,9 +30,9 @@
 namespace opendial {
 
 namespace {
-const QString kSvc = QStringLiteral("io.github.opendial");
+const QString kSvc = QStringLiteral("io.github.joshshearer.opendial");
 const QString kPath = QStringLiteral("/io/github/opendial/Daemon");
-const QString kIface = QStringLiteral("io.github.opendial.Daemon1");
+const QString kIface = QStringLiteral("io.github.joshshearer.opendial.Daemon1");
 
 QJsonValue parseJson(const QString &s)
 {

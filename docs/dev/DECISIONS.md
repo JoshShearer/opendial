@@ -1,6 +1,6 @@
 # Decisions
 
-Architecture decisions are in [docs/architecture-decisions/](docs/architecture-decisions/).
+Architecture decisions are in [docs/architecture-decisions/](../architecture-decisions/).
 Smaller decisions:
 
 | Date | Decision | Why |

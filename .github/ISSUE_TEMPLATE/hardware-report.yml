@@ -1,0 +1,55 @@
+name: Hardware report
+description: Tell us how OpenDial works with your Dial, desktop and distro (working or not)
+labels: [hardware-report]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Reports from desktops that are not verified yet (GNOME, KDE, COSMIC, Sway, X11...) are the most useful thing you can send.
+  - type: dropdown
+    id: result
+    attributes:
+      label: Overall result
+      options: [Everything I tried worked, Some things did not work, It did not work at all]
+    validations: {required: true}
+  - type: input
+    id: desktop
+    attributes:
+      label: Desktop and version
+      placeholder: e.g. GNOME 47 Wayland, KDE Plasma 6.2, COSMIC alpha 5, Sway 1.10
+    validations: {required: true}
+  - type: input
+    id: distro
+    attributes:
+      label: Distro and version
+      placeholder: e.g. Fedora 41, Ubuntu 24.04, Arch
+    validations: {required: true}
+  - type: input
+    id: version
+    attributes:
+      label: OpenDial version
+      description: "`opendialctl --version`"
+    validations: {required: true}
+  - type: checkboxes
+    id: checked
+    attributes:
+      label: What did you check?
+      options:
+        - label: Turning and pressing the Dial with the Volume tool
+        - label: Press and hold opens the menu; turn and click selects a tool
+        - label: Haptic ticks
+        - label: Per-app profile switching
+        - label: Reconnect after the Dial sleeps or the PC suspends
+        - label: Works after a reboot without doing anything
+  - type: textarea
+    id: details
+    attributes:
+      label: What happened
+      description: What worked, what did not, and what you expected instead.
+    validations: {required: true}
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Output of `opendialctl --json diagnose`. It hides device addresses, window titles and your home directory; check it before posting.
+      render: json

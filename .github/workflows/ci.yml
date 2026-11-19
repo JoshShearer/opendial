@@ -93,10 +93,10 @@ jobs:
     steps:
       - run: pacman -Syu --noconfirm --needed git desktop-file-utils appstream groff nodejs python
       - uses: actions/checkout@v4
-      - run: desktop-file-validate packaging/desktop/io.github.opendial.OpenDial.desktop
-      - run: appstreamcli validate --no-net packaging/desktop/io.github.opendial.OpenDial.metainfo.xml
+      - run: desktop-file-validate packaging/desktop/io.github.joshshearer.opendial.OpenDial.desktop
+      - run: appstreamcli validate --no-net packaging/desktop/io.github.joshshearer.opendial.OpenDial.metainfo.xml
       - run: for m in docs/man/*.1; do LC_ALL=C.UTF-8 MANROFFSEQ='' groff -man -ww -z "$m"; done
-      - run: cp plugins/gnome-shell/opendial@opendial.github.io/extension.js /tmp/ext.mjs && node --check /tmp/ext.mjs
+      - run: cp plugins/gnome-shell/opendial@joshshearer.github.io/extension.js /tmp/ext.mjs && node --check /tmp/ext.mjs
       - run: python -c "import ast,sys; [ast.parse(open(f).read()) for f in sys.argv[1:]]" plugins/krita/opendial/*.py plugins/examples/python/*.py
       - name: SPDX headers
         run: |

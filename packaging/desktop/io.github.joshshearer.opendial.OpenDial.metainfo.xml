@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.opendial.OpenDial</id>
+  <id>io.github.joshshearer.opendial.OpenDial</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   <name>OpenDial</name>
@@ -21,10 +21,10 @@
     </ul>
     <p>Not affiliated with Microsoft. “Surface” is a trademark of Microsoft Corporation.</p>
   </description>
-  <launchable type="desktop-id">io.github.opendial.OpenDial.desktop</launchable>
-  <url type="homepage">https://github.com/opendial/opendial</url>
-  <url type="bugtracker">https://github.com/opendial/opendial/issues</url>
-  <developer id="io.github.opendial"><name>OpenDial contributors</name></developer>
+  <launchable type="desktop-id">io.github.joshshearer.opendial.OpenDial.desktop</launchable>
+  <url type="homepage">https://github.com/JoshShearer/opendial</url>
+  <url type="bugtracker">https://github.com/JoshShearer/opendial/issues</url>
+  <developer id="io.github.joshshearer.opendial"><name>OpenDial contributors</name></developer>
   <content_rating type="oars-1.1"/>
   <supports>
     <control>pointing</control>

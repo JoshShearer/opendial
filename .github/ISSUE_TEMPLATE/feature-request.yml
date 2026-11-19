@@ -1,0 +1,14 @@
+name: Feature request
+description: Suggest a tool, integration or improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: want
+    attributes:
+      label: What would you like the Dial to do?
+    validations: {required: true}
+  - type: textarea
+    id: why
+    attributes:
+      label: Where would you use it?
+      description: The app or workflow, and how you do it today.

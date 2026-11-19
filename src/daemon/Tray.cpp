@@ -39,7 +39,7 @@ Tray::Tray(Engine *engine, QObject *parent) : QObject(parent), m_engine(engine)
     if (!QSystemTrayIcon::isSystemTrayAvailable())
         return;
     m_icon = new QSystemTrayIcon(this);
-    QIcon icon = QIcon::fromTheme(QStringLiteral("io.github.opendial.OpenDial"));
+    QIcon icon = QIcon::fromTheme(QStringLiteral("io.github.joshshearer.opendial.OpenDial"));
     if (icon.isNull()) {
         initIconResources();
         icon = QIcon(QStringLiteral(":/opendial/icons/app.svg"));

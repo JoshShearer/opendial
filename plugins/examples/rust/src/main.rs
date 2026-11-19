@@ -7,8 +7,8 @@ use serde_json::{json, Value};
 use zbus::{proxy, Connection};
 
 #[proxy(
-    interface = "io.github.opendial.Daemon1",
-    default_service = "io.github.opendial",
+    interface = "io.github.joshshearer.opendial.Daemon1",
+    default_service = "io.github.joshshearer.opendial",
     default_path = "/io/github/opendial/Daemon"
 )]
 trait Daemon {

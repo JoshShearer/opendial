@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: opendial
-Source: https://github.com/opendial/opendial
+Source: https://github.com/JoshShearer/opendial
 
 Files: *
 Copyright: 2026 OpenDial contributors

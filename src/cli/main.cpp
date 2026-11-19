@@ -75,15 +75,15 @@ Simulation (no hardware needed)
 
 QDBusInterface *iface()
 {
-    static QDBusInterface *i = new QDBusInterface(QStringLiteral("io.github.opendial"), QStringLiteral("/io/github/opendial/Daemon"),
-                                                  QStringLiteral("io.github.opendial.Daemon1"), QDBusConnection::sessionBus());
+    static QDBusInterface *i = new QDBusInterface(QStringLiteral("io.github.joshshearer.opendial"), QStringLiteral("/io/github/opendial/Daemon"),
+                                                  QStringLiteral("io.github.joshshearer.opendial.Daemon1"), QDBusConnection::sessionBus());
     return i;
 }
 
 bool daemonRunning()
 {
     auto *bus = QDBusConnection::sessionBus().interface();
-    return bus && bus->isServiceRegistered(QStringLiteral("io.github.opendial")).value();
+    return bus && bus->isServiceRegistered(QStringLiteral("io.github.joshshearer.opendial")).value();
 }
 
 QJsonValue parse(const QString &s)
@@ -309,8 +309,8 @@ int watch(bool raw, int seconds, const QString &recordPath)
         file.write("{\"comment\":\"recorded with opendialctl record; not synthetic\"}\n");
         w.file = &file;
     }
-    const QString svc = QStringLiteral("io.github.opendial"), path = QStringLiteral("/io/github/opendial/Daemon"),
-                  ifc = QStringLiteral("io.github.opendial.Daemon1");
+    const QString svc = QStringLiteral("io.github.joshshearer.opendial"), path = QStringLiteral("/io/github/opendial/Daemon"),
+                  ifc = QStringLiteral("io.github.joshshearer.opendial.Daemon1");
     bus.connect(svc, path, ifc, QStringLiteral("RawEvent"), &w, SLOT(onRaw(QString)));
     bus.connect(svc, path, ifc, QStringLiteral("GestureEvent"), &w, SLOT(onGesture(QString)));
     bus.connect(svc, path, ifc, QStringLiteral("StateChanged"), &w, SLOT(onConnectionChange(QString)));

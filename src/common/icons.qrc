@@ -58,6 +58,6 @@
   <file alias="window.svg">../../data/icons/tools/window.svg</file>
   <file alias="workspace.svg">../../data/icons/tools/workspace.svg</file>
   <file alias="zoom.svg">../../data/icons/tools/zoom.svg</file>
-  <file alias="app.svg">../../data/icons/io.github.opendial.OpenDial.svg</file>
+  <file alias="app.svg">../../data/icons/io.github.joshshearer.opendial.OpenDial.svg</file>
 </qresource>
 </RCC>

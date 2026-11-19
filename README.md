@@ -5,12 +5,24 @@ tool menu, the Windows wheel tools, custom tools with separate clockwise,
 counter-clockwise and click shortcuts, per-app profiles, haptics, macros, a
 Qt 6 configuration app, a CLI, a D-Bus API and plugins.
 
-> **Status: 0.9.0 release candidate.** Most features are implemented and
-> covered by automated tests on simulated input. The real Dial's input path and
-> menu have been checked on the reference machine, but most hardware
-> acceptance rows are still open. [docs/parity-matrix.md](docs/parity-matrix.md)
-> shows what has been verified on which desktop. Nothing in it is marked
-> verified on simulation alone.
+> **Status: 0.9.0 beta.** All features are implemented and covered by
+> automated tests. On real hardware it has so far been verified on **Hyprland
+> (Arch/Omarchy) only**. Reports from other desktops are very welcome; see
+> [Reporting hardware results](#reporting-hardware-results).
+
+### Tested on
+
+| Desktop | Real Dial | Notes |
+|---|---|---|
+| Hyprland 0.56 (Arch, Omarchy) | **verified** | Rotation, click, long press, menu, haptics, built-in tools, theme following, out-of-range reconnect, 17+ suspend/resume cycles, 55 reconnect cycles, 16.5 h awake soak with no daemon restart or memory growth |
+| GNOME 46+ (Wayland/X11) | not yet | Adapter tested in a headless GNOME session with simulated input; needs the bundled Shell extension |
+| KDE Plasma 6 | not yet | Adapter tested headless with simulated input |
+| COSMIC | not yet | Adapter tested headless with simulated input |
+| Other wlroots compositors (Sway, river, …) | not yet | Uses the same Wayland protocols as Hyprland |
+
+Reboot persistence and Krita with the real Dial are still to be checked.
+[docs/parity-matrix.md](docs/parity-matrix.md) has the per-feature detail;
+nothing in it is marked verified on simulation alone.
 
 ## What it does
 
@@ -97,8 +109,15 @@ cmake -S . -B build -G Ninja && cmake --build build
 QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure
 ```
 See [CONTRIBUTING.md](CONTRIBUTING.md). The project keeps
-[PLAN.md](PLAN.md), [TASKS.md](TASKS.md), [VERIFICATION.md](VERIFICATION.md)
-and [DECISIONS.md](DECISIONS.md) up to date.
+[PLAN.md](docs/dev/PLAN.md), [TASKS.md](docs/dev/TASKS.md), [VERIFICATION.md](VERIFICATION.md)
+and [DECISIONS.md](docs/dev/DECISIONS.md) up to date.
+
+## Reporting hardware results
+
+If you try OpenDial on a desktop or distro that is not marked verified above,
+please open a [hardware report](https://github.com/JoshShearer/opendial/issues/new?template=hardware-report.yml),
+whether it worked or not. Attach the output of `opendialctl diagnose --json`;
+it redacts addresses, window titles and paths.
 
 ## License
 

@@ -110,7 +110,7 @@ class Notifier : public QObject {
 public:
     explicit Notifier(QObject *parent = nullptr);
     void setEnabled(bool on, bool quiet) { m_enabled = on; m_quiet = quiet; }
-    void notify(const QString &summary, const QString &body, bool important = false, const QString &icon = QStringLiteral("io.github.opendial.OpenDial"));
+    void notify(const QString &summary, const QString &body, bool important = false, const QString &icon = QStringLiteral("io.github.joshshearer.opendial.OpenDial"));
 private:
     bool m_enabled = true;
     bool m_quiet = false;

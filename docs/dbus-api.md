@@ -1,11 +1,11 @@
-# D-Bus API (`io.github.opendial.Daemon1`)
+# D-Bus API (`io.github.joshshearer.opendial.Daemon1`)
 
 | | |
 |---|---|
 | Bus | session |
-| Name | `io.github.opendial` (D-Bus-activatable; starts `opendial.service`) |
+| Name | `io.github.joshshearer.opendial` (D-Bus-activatable; starts `opendial.service`) |
 | Object | `/io/github/opendial/Daemon` |
-| Interface | `io.github.opendial.Daemon1` |
+| Interface | `io.github.joshshearer.opendial.Daemon1` |
 
 **Conventions:**
 - Payloads are **JSON strings** (D-Bus type `s`), so the schema can grow without breaking D-Bus signatures (ADR-0005).
@@ -14,7 +14,7 @@
 
 Introspect it live:
 ```sh
-busctl --user introspect io.github.opendial /io/github/opendial/Daemon
+busctl --user introspect io.github.joshshearer.opendial /io/github/opendial/Daemon
 ```
 
 ## Methods

@@ -310,7 +310,7 @@ function opendialReport(w) {
         try { p.workspace = String(workspace.currentDesktop.name || workspace.currentDesktop); } catch (e) {}
     }
     try { p.pointer = { x: workspace.cursorPos.x, y: workspace.cursorPos.y }; } catch (e) {}
-    callDBus("io.github.opendial", "/io/github/opendial/Daemon", "io.github.opendial.Daemon1",
+    callDBus("io.github.joshshearer.opendial", "/io/github/opendial/Daemon", "io.github.joshshearer.opendial.Daemon1",
              "ReportFocus", JSON.stringify(p));
 }
 if (workspace.windowActivated) {
@@ -351,7 +351,7 @@ void BridgeTracker::checkGnomeExtension()
 {
     QDBusMessage m = QDBusMessage::createMethodCall(QStringLiteral("org.gnome.Shell"), QStringLiteral("/org/gnome/Shell"),
                                                     QStringLiteral("org.gnome.Shell.Extensions"), QStringLiteral("GetExtensionInfo"));
-    m << QStringLiteral("opendial@opendial.github.io");
+    m << QStringLiteral("opendial@joshshearer.github.io");
     QDBusMessage r = QDBusConnection::sessionBus().call(m, QDBus::Block, 1500);
     QVariantMap info;
     if (r.type() == QDBusMessage::ReplyMessage && !r.arguments().isEmpty())
@@ -364,7 +364,7 @@ void BridgeTracker::checkGnomeExtension()
                : st == 1   ? QStringLiteral("extension enabled; waiting for first report")
                : st == 3   ? QStringLiteral("extension failed to load: %1").arg(info.value(QStringLiteral("error")).toString())
                : st == 4   ? QStringLiteral("extension does not support this GNOME Shell version; update OpenDial")
-                           : QStringLiteral("extension installed but not enabled (gnome-extensions enable opendial@opendial.github.io)");
+                           : QStringLiteral("extension installed but not enabled (gnome-extensions enable opendial@joshshearer.github.io)");
     Q_EMIT stateChanged();
 }
 
@@ -388,7 +388,7 @@ std::optional<QPoint> BridgeTracker::pointerPosition()
 {
     if (m_kind == Kind::Gnome) {
         QDBusMessage m = QDBusMessage::createMethodCall(QStringLiteral("org.gnome.Shell"), QStringLiteral("/io/github/opendial/Shell"),
-                                                        QStringLiteral("io.github.opendial.Shell"), QStringLiteral("GetPointer"));
+                                                        QStringLiteral("io.github.joshshearer.opendial.Shell"), QStringLiteral("GetPointer"));
         QDBusMessage r = QDBusConnection::sessionBus().call(m, QDBus::Block, 200);
         if (r.type() == QDBusMessage::ReplyMessage && r.arguments().size() == 2)
             return QPoint(r.arguments().at(0).toInt(), r.arguments().at(1).toInt());

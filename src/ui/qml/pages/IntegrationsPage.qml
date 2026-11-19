@@ -97,7 +97,7 @@ ScrollView {
                     wrapMode: Text.WordWrap
                     opacity: 0.7
                     font.pixelSize: 12
-                    text: qsTr("GNOME needs the OpenDial Shell extension (gnome-extensions enable opendial@opendial.github.io). KDE Plasma loads the OpenDial KWin script automatically.")
+                    text: qsTr("GNOME needs the OpenDial Shell extension (gnome-extensions enable opendial@joshshearer.github.io). KDE Plasma loads the OpenDial KWin script automatically.")
                 }
                 SettingSwitch { label: qsTr("Switch profiles automatically"); path: "settings.context.enabled"; defaultValue: true }
                 SettingCombo {

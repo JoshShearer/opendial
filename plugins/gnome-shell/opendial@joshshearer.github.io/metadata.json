@@ -1,8 +1,8 @@
 {
-  "uuid": "opendial@opendial.github.io",
+  "uuid": "opendial@joshshearer.github.io",
   "name": "OpenDial focus bridge",
   "description": "Tells the OpenDial Surface Dial service which app is focused (for per-app tools) and where the pointer is (to place the radial menu). Window titles are only sent to the local OpenDial service on the session bus.",
   "shell-version": ["45", "46", "47", "48", "49", "50", "51"],
-  "url": "https://github.com/opendial/opendial",
+  "url": "https://github.com/JoshShearer/opendial",
   "version": 1
 }

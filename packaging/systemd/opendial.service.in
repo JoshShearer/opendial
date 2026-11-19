@@ -1,13 +1,13 @@
 [Unit]
 Description=OpenDial Surface Dial service
-Documentation=man:opendiald(1) https://github.com/opendial/opendial
+Documentation=man:opendiald(1) https://github.com/JoshShearer/opendial
 # Needs the graphical session (Wayland/X11 display, portals, session bus).
 PartOf=graphical-session.target
 After=graphical-session.target
 
 [Service]
 Type=dbus
-BusName=io.github.opendial
+BusName=io.github.joshshearer.opendial
 ExecStart=@CMAKE_INSTALL_FULL_BINDIR@/opendiald
 Restart=on-failure
 RestartSec=2

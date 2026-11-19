@@ -14,6 +14,6 @@ package. To remove them:
 ```sh
 rm -rf ~/.config/opendial ~/.local/state/opendial
 ```
-The GNOME extension, if you copied it: `rm -rf ~/.local/share/gnome-shell/extensions/opendial@opendial.github.io`.
+The GNOME extension, if you copied it: `rm -rf ~/.local/share/gnome-shell/extensions/opendial@joshshearer.github.io`.
 The Krita plugin: remove `opendial` and `opendial.desktop` from `~/.local/share/krita/pykrita/`.
 If you installed the optional uinput rule: `sudo rm /etc/udev/rules.d/71-opendial-uinput-optin.rules`.

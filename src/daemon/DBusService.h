@@ -9,15 +9,15 @@ namespace opendial {
 
 class Engine;
 
-inline const QString kDBusService = QStringLiteral("io.github.opendial");
+inline const QString kDBusService = QStringLiteral("io.github.joshshearer.opendial");
 inline const QString kDBusPath = QStringLiteral("/io/github/opendial/Daemon");
-inline const QString kDBusInterface = QStringLiteral("io.github.opendial.Daemon1");
+inline const QString kDBusInterface = QStringLiteral("io.github.joshshearer.opendial.Daemon1");
 
 // Session-bus API (docs/dbus-api.md). Structured values are JSON strings so
 // clients in any language need no custom D-Bus type marshalling.
 class DBusService : public QObject, protected QDBusContext {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "io.github.opendial.Daemon1")
+    Q_CLASSINFO("D-Bus Interface", "io.github.joshshearer.opendial.Daemon1")
     Q_PROPERTY(QString Version READ version)
     Q_PROPERTY(int ApiVersion READ apiVersion)
 public:

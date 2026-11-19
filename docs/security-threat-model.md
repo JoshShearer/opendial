@@ -50,7 +50,7 @@ OpenDial does not try to defend the user from themselves. It only avoids
 
 ## Residual risks
 
-- Wayland portals remember the RemoteDesktop grant per app ID. Anything that can impersonate `io.github.opendial` to the portal gets the same grant. That is the portal's model.
+- Wayland portals remember the RemoteDesktop grant per app ID. Anything that can impersonate `io.github.joshshearer.opendial` to the portal gets the same grant. That is the portal's model.
 - The GNOME Shell extension and the KWin script run inside the compositor with its privileges. They are small and only report the focus app ID, title and pointer.
 - The Krita plugin and the plugin examples run inside the host apps with those apps' privileges.
 

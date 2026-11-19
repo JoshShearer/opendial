@@ -2,7 +2,7 @@
 """OpenDial ↔ Krita bridge.
 
 Registers Krita-specific Dial tools with the OpenDial service over the session
-D-Bus (io.github.opendial). They appear in the radial menu while Krita is
+D-Bus (io.github.joshshearer.opendial). They appear in the radial menu while Krita is
 focused, after you allow "Krita" once in OpenDial → Integrations → Plugins.
 
 Turning the Dial with one of these tools selected changes the value directly
@@ -29,9 +29,9 @@ _WATCH_REGISTRATION = getattr(QDBusServiceWatcher, "WatchForRegistration", None)
 if _WATCH_REGISTRATION is None:
     _WATCH_REGISTRATION = QDBusServiceWatcher.WatchModeFlag.WatchForRegistration
 
-SERVICE = "io.github.opendial"
+SERVICE = "io.github.joshshearer.opendial"
 PATH = "/io/github/opendial/Daemon"
-IFACE = "io.github.opendial.Daemon1"
+IFACE = "io.github.joshshearer.opendial.Daemon1"
 APP_ID = "org.kde.krita"
 
 TOOLS = [
@@ -47,7 +47,7 @@ def _clamp(v, lo, hi):
 
 
 class _Receiver(QObject):
-    """Receives io.github.opendial.Daemon1.PluginEvent(appId, json)."""
+    """Receives io.github.joshshearer.opendial.Daemon1.PluginEvent(appId, json)."""
 
     def __init__(self, bridge):
         super().__init__()

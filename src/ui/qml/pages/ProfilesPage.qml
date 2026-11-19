@@ -26,7 +26,7 @@ Item {
             if (page.countdown <= 0) {
                 stop()
                 const f = backend.state.focus || {}
-                if (f.appId && f.appId !== "io.github.opendial.opendial" && f.appId !== "opendial") {
+                if (f.appId && f.appId !== "io.github.joshshearer.opendial.opendial" && f.appId !== "opendial") {
                     const ids = (page.match.appIds || []).slice()
                     if (ids.indexOf(f.appId) < 0) ids.push(f.appId)
                     backend.set(page.pp + ".match.appIds", ids)

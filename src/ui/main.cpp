@@ -19,10 +19,10 @@
 static void initUiResources() { Q_INIT_RESOURCE(ui); }
 
 namespace opendial {
-// io.github.opendial.Settings1 on "/": lets a second launch raise this window.
+// io.github.joshshearer.opendial.Settings1 on "/": lets a second launch raise this window.
 class SettingsRaiser : public QObject {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "io.github.opendial.Settings1")
+    Q_CLASSINFO("D-Bus Interface", "io.github.joshshearer.opendial.Settings1")
 public:
     SettingsRaiser(QQuickWindow *w, QObject *parent) : QObject(parent), m_win(w) {}
 public Q_SLOTS:
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     QApplication::setApplicationDisplayName(QStringLiteral("OpenDial"));
     QApplication::setOrganizationName(QStringLiteral("opendial"));
     QApplication::setApplicationVersion(QStringLiteral(OPENDIAL_VERSION));
-    QGuiApplication::setDesktopFileName(QStringLiteral("io.github.opendial.OpenDial"));
+    QGuiApplication::setDesktopFileName(QStringLiteral("io.github.joshshearer.opendial.OpenDial"));
 
     QCommandLineParser p;
     p.setApplicationDescription(QStringLiteral("Configure the Surface Dial"));
@@ -62,9 +62,9 @@ int main(int argc, char **argv)
 
     // Single window: if the settings app already runs, raise it instead.
     auto bus = QDBusConnection::sessionBus();
-    const QString svc = QStringLiteral("io.github.opendial.Settings");
+    const QString svc = QStringLiteral("io.github.joshshearer.opendial.Settings");
     if (bus.isConnected() && !bus.registerService(svc)) {
-        QDBusInterface other(svc, QStringLiteral("/"), QStringLiteral("io.github.opendial.Settings1"), bus);
+        QDBusInterface other(svc, QStringLiteral("/"), QStringLiteral("io.github.joshshearer.opendial.Settings1"), bus);
         other.call(QStringLiteral("Raise"), p.value(page));
         return 0;
     }
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     opendial::initIconResources();
     initUiResources();
     QIcon::setFallbackThemeName(QStringLiteral("hicolor"));
-    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("io.github.opendial.OpenDial"), QIcon(QStringLiteral(":/opendial/icons/app.svg"))));
+    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("io.github.joshshearer.opendial.OpenDial"), QIcon(QStringLiteral(":/opendial/icons/app.svg"))));
     if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE"))
         QQuickStyle::setStyle(QStringLiteral("Material"));
 

@@ -21,9 +21,9 @@ import gi
 gi.require_version("Gio", "2.0")
 from gi.repository import Gio, GLib  # noqa: E402
 
-BUS = "io.github.opendial"
+BUS = "io.github.joshshearer.opendial"
 PATH = "/io/github/opendial/Daemon"
-IFACE = "io.github.opendial.Daemon1"
+IFACE = "io.github.joshshearer.opendial.Daemon1"
 APP_ID = "org.example.counter"
 
 conn = Gio.bus_get_sync(Gio.BusType.SESSION, None)

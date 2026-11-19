@@ -1,0 +1,26 @@
+name: Bug report
+description: Something in OpenDial is broken
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations: {required: true}
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations: {required: true}
+  - type: input
+    id: env
+    attributes:
+      label: OpenDial version, desktop and distro
+      placeholder: e.g. 0.9.0, KDE Plasma 6.2 Wayland, Fedora 41
+    validations: {required: true}
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and diagnostics
+      description: "`journalctl --user -u opendial.service -b` and `opendialctl --json diagnose` (redacted by default; check before posting)."
+      render: text

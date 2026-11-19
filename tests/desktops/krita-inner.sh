@@ -7,7 +7,7 @@ export DISPLAY=:5
 openbox > /out/openbox.log 2>&1 &
 QT_QPA_PLATFORM=xcb opendiald --no-device --no-tray > /out/daemon.log 2>&1 &
 D=$!; sleep 3
-dbus-monitor "type='method_call',interface='io.github.opendial.Daemon1'" > /out/monitor.txt 2>&1 &
+dbus-monitor "type='method_call',interface='io.github.joshshearer.opendial.Daemon1'" > /out/monitor.txt 2>&1 &
 M=$!
 krita --nosplash --new-image RGBA,U8,800,600 > /out/krita.log 2>&1 &
 K=$!

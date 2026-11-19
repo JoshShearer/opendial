@@ -22,9 +22,9 @@
      - For per-app profiles and opening the menu at the pointer, enable the bundled extension:
        ```sh
        mkdir -p ~/.local/share/gnome-shell/extensions
-       cp -r /usr/share/opendial/plugins/gnome-shell/opendial@opendial.github.io ~/.local/share/gnome-shell/extensions/
+       cp -r /usr/share/opendial/plugins/gnome-shell/opendial@joshshearer.github.io ~/.local/share/gnome-shell/extensions/
        # log out and back in, then:
-       gnome-extensions enable opendial@opendial.github.io
+       gnome-extensions enable opendial@joshshearer.github.io
        ```
    - **KDE Plasma:** nothing to install. OpenDial loads a small KWin script over D-Bus for focus tracking.
    - **COSMIC:** profiles switch manually (Dashboard → lock a profile) until COSMIC offers a focus API. See [platform capabilities](../platform-capabilities.md).

@@ -3,19 +3,19 @@
 //
 // GNOME's Wayland session does not let regular clients see the focused window
 // or the pointer position. This extension reports both to the local OpenDial
-// service (io.github.opendial on the session bus). Nothing leaves the machine.
+// service (io.github.joshshearer.opendial on the session bus). Nothing leaves the machine.
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-const SERVICE = 'io.github.opendial';
+const SERVICE = 'io.github.joshshearer.opendial';
 const PATH = '/io/github/opendial/Daemon';
-const IFACE = 'io.github.opendial.Daemon1';
+const IFACE = 'io.github.joshshearer.opendial.Daemon1';
 
 const SHELL_IFACE_XML = `
 <node>
-  <interface name="io.github.opendial.Shell">
+  <interface name="io.github.joshshearer.opendial.Shell">
     <method name="GetPointer">
       <arg type="i" direction="out" name="x"/>
       <arg type="i" direction="out" name="y"/>

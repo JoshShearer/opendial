@@ -1427,8 +1427,18 @@ QJsonObject Engine::diagnostics(bool redact) const
     d.insert(QStringLiteral("approvals"), pendingApprovals());
     d.insert(QStringLiteral("redacted"), redact);
     d.remove(QStringLiteral("menuTools"));
-    if (redact)
+    if (redact) {
         d.remove(QStringLiteral("variables"));
+        // Redacted reports get attached to public issues: paths under the home
+        // directory would reveal the user name, so they are shown as ~/...
+        const QString home = QDir::homePath();
+        if (home.size() > 1) {
+            QString j = QString::fromUtf8(QJsonDocument(d).toJson(QJsonDocument::Compact));
+            j.replace(QLatin1Char('"') + home + QLatin1Char('"'), QStringLiteral("\"~\""));
+            j.replace(home + QLatin1Char('/'), QStringLiteral("~/"));
+            d = QJsonDocument::fromJson(j.toUtf8()).object();
+        }
+    }
     return d;
 }
 

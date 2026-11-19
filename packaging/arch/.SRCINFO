@@ -2,7 +2,7 @@ pkgbase = opendial
 	pkgdesc = Microsoft Surface Dial support: radial menu, tools, per-app profiles, haptics
 	pkgver = 0.9.0
 	pkgrel = 1
-	url = https://github.com/opendial/opendial
+	url = https://github.com/JoshShearer/opendial
 	install = opendial.install
 	arch = x86_64
 	arch = aarch64
@@ -31,7 +31,7 @@ pkgbase = opendial
 	optdepends = xdg-desktop-portal: RemoteDesktop portal keyboard/mouse injection
 	optdepends = python: plugin examples and the Krita plugin
 	optdepends = python-gobject: Python plugin example
-	source = opendial-0.9.0.tar.gz::https://github.com/opendial/opendial/archive/refs/tags/v0.9.0.tar.gz
+	source = opendial-0.9.0.tar.gz::https://github.com/JoshShearer/opendial/archive/refs/tags/v0.9.0.tar.gz
 	sha256sums = SKIP
 
 pkgname = opendial

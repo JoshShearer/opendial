@@ -73,6 +73,20 @@ private Q_SLOTS:
     }
     void cleanup() { m_engine.reset(); }
 
+    // Users attach redacted diagnostics to public bug reports, so paths under
+    // the home directory must not reveal the user name.
+    void redactedDiagnosticsHideHomeDirectory()
+    {
+        const QByteArray oldHome = qgetenv("HOME");
+        qputenv("HOME", m_dir.path().toUtf8());
+        const QString redacted = QString::fromUtf8(QJsonDocument(e().diagnostics(true)).toJson());
+        const QString plain = QString::fromUtf8(QJsonDocument(e().diagnostics(false)).toJson());
+        qputenv("HOME", oldHome);
+        QVERIFY(plain.contains(m_dir.path()));
+        QVERIFY2(!redacted.contains(m_dir.path()), "home directory leaked into redacted diagnostics");
+        QVERIFY(redacted.contains(QStringLiteral("~/config.json")));
+    }
+
     void firstRunWritesDefaults()
     {
         QVERIFY(QFile::exists(m_dir.filePath(QStringLiteral("config.json"))));

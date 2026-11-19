@@ -22,6 +22,6 @@ docker run --rm --device /dev/dri -v "$pkg:/pkg/$(basename "$pkg"):ro" -v "$here
   export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/run/dbus/system_bus_socket XDG_SESSION_ID=c1
   python3 /t/fake-logind.py & sleep 1
   mkdir -p $HOME/.local/share/gnome-shell/extensions
-  cp -r /usr/share/opendial/plugins/gnome-shell/opendial@opendial.github.io $HOME/.local/share/gnome-shell/extensions/
+  cp -r /usr/share/opendial/plugins/gnome-shell/opendial@joshshearer.github.io $HOME/.local/share/gnome-shell/extensions/
   dbus-run-session -- bash /t/gnome-inner.sh
 '
