@@ -13,7 +13,7 @@ cut from `main` by the maintainer.
 - [x] README "Tested on" table matches `docs/parity-matrix.md`.
 - [x] Redacted diagnostics hide device addresses, window titles and the home
       directory.
-- [ ] CI green on GitHub for the release commit.
+- [x] CI green on GitHub (all 7 jobs, 2026-11-19, 6a66cf4).
 - [ ] Reboot check on the reference machine (optional for a 0.9 beta; required
       before 1.0).
 - [ ] Make the repository public, then enable private vulnerability reporting
