@@ -17,7 +17,7 @@ First public beta of OpenDial: Microsoft Surface Dial support for Linux.
 ## Tested on
 
 Verified with a real Dial on **Hyprland (Arch/Omarchy)**: input, menu,
-haptics, tools, theme, out-of-range reconnect, 17+ suspend/resume cycles,
+haptics, tools, theme, per-app profiles, start after reboot, out-of-range reconnect, 17+ suspend/resume cycles,
 55 reconnect cycles and a 16.5 h idle soak without a daemon restart.
 
 GNOME, KDE Plasma and COSMIC adapters pass automated tests in headless

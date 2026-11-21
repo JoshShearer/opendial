@@ -14,13 +14,13 @@ Qt 6 configuration app, a CLI, a D-Bus API and plugins.
 
 | Desktop | Real Dial | Notes |
 |---|---|---|
-| Hyprland 0.56 (Arch, Omarchy) | **verified** | Rotation, click, long press, menu, haptics, built-in tools, theme following, out-of-range reconnect, 17+ suspend/resume cycles, 55 reconnect cycles, 16.5 h awake soak with no daemon restart or memory growth |
+| Hyprland 0.56 (Arch, Omarchy) | **verified** | Rotation, click, long press, menu, haptics, built-in tools, theme following, per-app profile switching, starts on its own after a reboot, out-of-range reconnect, 17+ suspend/resume cycles, 55 reconnect cycles, 16.5 h awake soak with no daemon restart or memory growth |
 | GNOME 46+ (Wayland/X11) | not yet | Adapter tested in a headless GNOME session with simulated input; needs the bundled Shell extension |
 | KDE Plasma 6 | not yet | Adapter tested headless with simulated input |
 | COSMIC | not yet | Adapter tested headless with simulated input |
 | Other wlroots compositors (Sway, river, …) | not yet | Uses the same Wayland protocols as Hyprland |
 
-Reboot persistence and Krita with the real Dial are still to be checked.
+Krita with the real Dial is still to be checked.
 [docs/parity-matrix.md](docs/parity-matrix.md) has the per-feature detail;
 nothing in it is marked verified on simulation alone.
 

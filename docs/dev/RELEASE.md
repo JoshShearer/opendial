@@ -14,8 +14,7 @@ cut from `main` by the maintainer.
 - [x] Redacted diagnostics hide device addresses, window titles and the home
       directory.
 - [x] CI green on GitHub (all 7 jobs, 2026-11-19, 6a66cf4).
-- [ ] Reboot check on the reference machine (optional for a 0.9 beta; required
-      before 1.0).
+- [x] Reboot check on the reference machine (2026-11-20).
 - [x] Repository public (2026-11-21), private vulnerability reporting on, labels and topics set.
 
 ## Cutting a release
