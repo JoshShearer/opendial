@@ -16,9 +16,7 @@ cut from `main` by the maintainer.
 - [x] CI green on GitHub (all 7 jobs, 2026-11-19, 6a66cf4).
 - [ ] Reboot check on the reference machine (optional for a 0.9 beta; required
       before 1.0).
-- [ ] Make the repository public, then enable private vulnerability reporting
-      (Settings → Security → Private vulnerability reporting). The advisory link
-      in SECURITY.md and the issue chooser only works once that is on.
+- [x] Repository public (2026-11-21), private vulnerability reporting on, labels and topics set.
 
 ## Cutting a release
 
