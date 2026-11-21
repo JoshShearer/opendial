@@ -2,7 +2,7 @@
 
 Tested so far:
 - `archlinux:latest` container on 2026-11-10: `makepkg` (with `check()`, all tests passed), `namcap` (only expected warnings), `pacman -U`, binaries run.
-- The reference machine (Arch-based, Hyprland) runs a development build.
+- The reference machine (Omarchy, Arch-based, Hyprland) runs the 0.9.0 package with a real Dial; see [VERIFICATION.md](../../VERIFICATION.md).
 
 ## Build and install
 

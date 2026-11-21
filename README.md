@@ -50,7 +50,17 @@ Beyond Windows:
 
 ## Install
 
-**Arch Linux**
+**You need:** a Microsoft Surface Dial, a Bluetooth LE adapter, and a
+systemd-based Linux desktop (Wayland or X11). There are no prebuilt packages
+yet; the scripts below build a native package from the source in a couple of
+minutes.
+
+```sh
+git clone https://github.com/JoshShearer/opendial.git
+cd opendial
+```
+
+**Arch Linux** (build dependencies are in [docs/installation/arch.md](docs/installation/arch.md))
 ```sh
 scripts/build-arch.sh          # builds dist/opendial-*.pkg.tar.zst
 sudo pacman -U dist/opendial-0.9.0-1-x86_64.pkg.tar.zst
