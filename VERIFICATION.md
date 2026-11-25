@@ -132,3 +132,23 @@ need the physical Dial and are still to do.
 - GNOME (extension, portal), KDE (KWin script, portal), COSMIC, X11 sessions.
 - Krita plugin inside Krita.
 - Rust example against a live daemon. It does compile (`cargo build`, rust:1-slim container).
+
+## 2026-11-23: command outcomes and overlap (GitHub issues 1 and 2)
+
+Simulated input only, in rootless podman containers; no hardware run.
+`test_commands` runs the real `opendiald` (not `--dry-run`) and `opendialctl`
+on a private bus and starts real processes.
+
+Before the fix (`15f951b`): a missing executable reported `ok: started`, and
+50 rotation events bound to `sleep 5` ran 50 processes at once.
+
+After:
+
+| Target | Result |
+|---|---|
+| Arch, Qt 6.12, `-DOPENDIAL_WERROR=ON` | 14/14 suites pass |
+| Ubuntu 24.04, Qt 6.4.2 | 14/14 suites pass |
+| Arch, Debug with ASan + UBSan (leak detection off) | 14/14 suites pass, no reports in `test_commands` |
+
+Same 50-rotation test: peak of 1 process, a click bound to another command ran
+while it was busy, and the merged events ran once more.

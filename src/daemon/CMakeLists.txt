@@ -14,6 +14,7 @@ set(SERVICE_SOURCES
   ${SRC}/common/SystemTheme.cpp
   ${SRC}/common/icons.qrc
   ActionRunner.cpp
+  CommandRunner.cpp
   Engine.cpp
   DBusService.cpp
   HttpApi.cpp

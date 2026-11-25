@@ -42,6 +42,10 @@ private Q_SLOTS:
         QVERIFY(!valid({{"type", "volume"}}));
         QVERIFY(!valid({{"type", "volume"}, {"delta", 500}}));
         QVERIFY(!valid({{"type", "command"}, {"argv", "rm -rf ~"}})); // shell strings rejected
+        for (const char *o : {"coalesce", "reject", "queue"})
+            QVERIFY(valid({{"type", "command"}, {"argv", QJsonArray{"x"}}, {"overlap", o}}));
+        QVERIFY(!valid({{"type", "command"}, {"argv", QJsonArray{"x"}}, {"overlap", "parallel"}}));
+        QVERIFY(!valid({{"type", "command"}, {"argv", QJsonArray{"x"}}, {"overlap", 3}}));
         QVERIFY(!valid({{"type", "launch"}, {"url", "file:///etc/passwd"}}));
         QVERIFY(!valid({{"type", "launch"}, {"url", "https://x"}, {"path", "/bin/sh"}}));
         QVERIFY(!valid({{"type", "osc"}, {"host", "h"}, {"port", 1}, {"address", "nope"}}));

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 #pragma once
 
+#include "CommandRunner.h"
 #include "Profiles.h"
 
 #include <QJsonObject>
@@ -33,6 +34,7 @@ struct ActionResult {
     bool ok = false;
     QString message;      // shown in diagnostics; never contains window titles
     bool needsApproval = false;
+    quint64 commandId = 0; // command actions: later CommandEvents carry this id
 };
 
 // Executes action JSON objects (see Action.h for the schema). Rotation steps
@@ -45,8 +47,8 @@ public:
                  BrightnessController *brightness, WorkspaceController *workspace, QObject *parent = nullptr);
 
     ActionResult run(const QJsonObject &action, const ActionContext &ctx);
-    // Cancel pending macro steps (lock screen, secure focus, disconnect).
-    void cancelPending() { ++m_generation; }
+    // Cancel pending macro steps and waiting commands (lock screen, secure focus, disconnect).
+    void cancelPending();
 
     // Replace {value} / {steps} / {direction} placeholders in an action tree.
     static QJsonValue substitute(const QJsonValue &v, const QHash<QString, QString> &vars);
@@ -54,6 +56,10 @@ public:
     static QByteArray encodeOsc(const QString &address, const QJsonArray &args);
     // Evaluate an "if" condition against focus/variables.
     bool evaluate(const QJsonObject &cond, const ActionContext &ctx) const;
+
+Q_SIGNALS:
+    // Outcome of a command action. run() only reports that it was requested.
+    void commandEvent(const opendial::CommandEvent &e);
 
 private:
     ActionResult runValue(const QJsonObject &a, const ActionContext &ctx);
@@ -68,6 +74,7 @@ private:
     MediaController *m_media;
     BrightnessController *m_brightness;
     WorkspaceController *m_workspace;
+    CommandRunner *m_commands;
     QUdpSocket m_udp;
     quint64 m_generation = 0;
 };

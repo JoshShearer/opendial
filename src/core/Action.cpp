@@ -170,6 +170,8 @@ void validateAction(const QJsonObject &a, const QString &path, ValidationIssues 
             if (!v.isString())
                 err(is, path + QStringLiteral(".argv"), QStringLiteral("argv entries must be strings"));
         needNumber(a, "timeoutMs", path, is, 100, 600000, false);
+        if (a.contains(QLatin1String("overlap")) && !oneOf(str(a, "overlap"), {"coalesce", "reject", "queue"}))
+            err(is, path + QStringLiteral(".overlap"), QStringLiteral("overlap must be coalesce, reject or queue"));
     } else if (t == QLatin1String("dbus")) {
         for (const char *k : {"service", "path", "interface", "method"})
             if (str(a, k).isEmpty())
