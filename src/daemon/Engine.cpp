@@ -1155,8 +1155,11 @@ void Engine::requestApproval(const QJsonObject &action, const QString &toolId, c
                                      {QStringLiteral("description"), describeForApproval(action)},
                                      {QStringLiteral("toolId"), toolId},
                                      {QStringLiteral("profileId"), profileId}});
+    QString what = describeForApproval(action);
+    if (what.size() > 200)
+        what = what.left(200) + QStringLiteral("…");
     m_notifier->notify(tr("Action needs your approval"),
-                       tr("“%1” runs a program or contacts another service. Open OpenDial → Approvals to allow it.").arg(describeForApproval(action).left(200)), true);
+                       tr("“%1” runs a program or contacts another service. Open OpenDial → Approvals to allow it.").arg(what), true);
     Q_EMIT approvalsChanged();
     scheduleStateChanged();
 }

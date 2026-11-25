@@ -302,16 +302,71 @@ QString describeAction(const QJsonObject &a)
     return t;
 }
 
+QString visibleText(const QString &s)
+{
+    QString out;
+    for (qsizetype i = 0; i < s.size(); ++i) {
+        char32_t c = s.at(i).unicode();
+        qsizetype units = 1;
+        if (s.at(i).isHighSurrogate() && i + 1 < s.size() && s.at(i + 1).isLowSurrogate()) {
+            c = QChar::surrogateToUcs4(s.at(i), s.at(i + 1));
+            units = 2;
+        }
+        if (QChar::isPrint(c) && (c == U' ' || !QChar::isSpace(c))) {
+            out += s.mid(i, units);
+        } else {
+            for (qsizetype k = 0; k < units; ++k)
+                out += QStringLiteral("\\u%1").arg(int(s.at(i + k).unicode()), 4, 16, QLatin1Char('0'));
+        }
+        i += units - 1;
+    }
+    return out;
+}
+
+namespace {
+// One word of an approval request: quoted unless it is plainly a single word.
+QString word(const QString &s)
+{
+    static const QRegularExpression plain(QStringLiteral("\\A[A-Za-z0-9_@%+=:,./{}?#~-]+\\z"));
+    if (plain.match(s).hasMatch())
+        return s;
+    QString q = s;
+    q.replace(QLatin1Char('\\'), QStringLiteral("\\\\")).replace(QLatin1Char('"'), QStringLiteral("\\\""));
+    return QLatin1Char('"') + visibleText(q) + QLatin1Char('"');
+}
+QString jsonArgs(const QJsonObject &a)
+{
+    return visibleText(QString::fromUtf8(QJsonDocument(a.value(QLatin1String("args")).toArray()).toJson(QJsonDocument::Compact)));
+}
+} // namespace
+
 QString describeForApproval(const QJsonObject &a)
 {
     const QString t = str(a, "type");
     const auto risky = [](const QJsonObject &o) { return actionRisk(o) == Risk::NeedsApproval; };
-    if (t == QLatin1String("command"))
-        return QStringLiteral("Run ") + commandArgv(a).join(QLatin1Char(' '));
+    if (t == QLatin1String("command")) {
+        QStringList words;
+        for (const QString &arg : commandArgv(a))
+            words << word(arg);
+        return QStringLiteral("Run ") + words.join(QLatin1Char(' '));
+    }
+    if (t == QLatin1String("dbus"))
+        return QStringLiteral("D-Bus ") + (str(a, "bus") == QLatin1String("system") ? QStringLiteral("system ") : QStringLiteral("session "))
+            + word(str(a, "service")) + QLatin1Char(' ') + word(str(a, "path")) + QLatin1Char(' ')
+            + word(str(a, "interface") + QLatin1Char('.') + str(a, "method")) + QLatin1Char(' ') + jsonArgs(a);
+    if (t == QLatin1String("launch")) {
+        // in the order runRisky() looks at them
+        if (a.contains(QLatin1String("desktopId")))
+            return QStringLiteral("Open app ") + word(str(a, "desktopId"));
+        return a.contains(QLatin1String("url")) ? QStringLiteral("Open URL ") + word(str(a, "url")) : QStringLiteral("Open file ") + word(str(a, "path"));
+    }
+    if (t == QLatin1String("osc"))
+        return QStringLiteral("OSC ") + word(str(a, "host")) + QLatin1Char(':') + QString::number(a.value(QLatin1String("port")).toInt(9000))
+            + QLatin1Char(' ') + word(str(a, "address")) + QLatin1Char(' ') + jsonArgs(a);
     if (!risky(a))
-        return describeAction(a);
+        return visibleText(describeAction(a));
     if (t == QLatin1String("value"))
-        return QStringLiteral("Value ") + str(a, "variable")
+        return QStringLiteral("Value ") + word(str(a, "variable"))
             + QStringLiteral(" (%1 to %2): ").arg(a.value(QLatin1String("min")).toDouble(0)).arg(a.value(QLatin1String("max")).toDouble(100))
             + describeForApproval(a.value(QLatin1String("output")).toObject());
     if (t == QLatin1String("if")) {
