@@ -95,6 +95,26 @@ private Q_SLOTS:
         QCOMPARE(out.first().first, QStringLiteral("p.tools[0].bindings.click"));
     }
 
+    // What the user agrees to: every risky action inside, in full.
+    void describeApproval()
+    {
+        const QString longArg(200, QLatin1Char('x'));
+        const QJsonObject cmd{{"type", "command"}, {"argv", QJsonArray{"run", "{value}", longArg}}};
+        const QString run = QStringLiteral("Run run {value} ") + longArg;
+        QCOMPARE(describeForApproval(cmd), run);
+        QCOMPARE(describeForApproval({{"type", "value"}, {"variable", "v"}, {"step", 1}, {"min", 5}, {"max", 20}, {"output", cmd}}),
+                 QStringLiteral("Value v (5 to 20): ") + run);
+        QCOMPARE(describeForApproval({{"type", "value"}, {"variable", "v"}, {"step", 1}, {"output", cmd}}),
+                 QStringLiteral("Value v (0 to 100): ") + run); // the defaults runValue() uses
+        const QJsonObject open{{"type", "launch"}, {"url", "https://a"}};
+        const QJsonObject cond{{"type", "if"}, {"condition", QJsonObject()}, {"then", cmd}, {"else", open}};
+        QCOMPARE(describeForApproval(cond), QStringLiteral("Conditional: ") + run + QStringLiteral("; otherwise Open https://a"));
+        const QJsonObject key{{"type", "key"}, {"keys", "a"}};
+        QCOMPARE(describeForApproval({{"type", "macro"}, {"repeat", 3},
+                                      {"steps", QJsonArray{QJsonObject{{"action", key}}, QJsonObject{{"delayMs", 5}}, QJsonObject{{"action", cond}}, QJsonObject{{"action", open}}}}}),
+                 QStringLiteral("Macro (4 steps, 3 times): Conditional: ") + run + QStringLiteral("; otherwise Open https://a; Open https://a"));
+    }
+
     void describe()
     {
         QCOMPARE(describeAction({{"type", "key"}, {"keys", "ctrl+z"}}), QStringLiteral("Key Ctrl+Z"));

@@ -62,7 +62,7 @@ QVariant jsonToDBus(const QJsonValue &v)
 ActionRunner::ActionRunner(Engine *engine, InjectorManager *inj, AudioController *audio, MediaController *media,
                            BrightnessController *brightness, WorkspaceController *workspace, QObject *parent)
     : QObject(parent), m_engine(engine), m_inj(inj), m_audio(audio), m_media(media), m_brightness(brightness), m_workspace(workspace),
-      m_commands(new CommandRunner([engine](const QJsonObject &action) { return engine->isApproved(actionFingerprint(action)); }, this))
+      m_commands(new CommandRunner([engine](const QString &approval) { return engine->isApproved(approval); }, this))
 {
     connect(m_commands, &CommandRunner::commandEvent, this, &ActionRunner::commandEvent);
 }
@@ -179,15 +179,22 @@ ActionResult ActionRunner::run(const QJsonObject &a, const ActionContext &ctx)
     const int steps = qMax(1, ctx.steps);
 
     if (actionRisk(a) == Risk::NeedsApproval) {
-        if (ctx.dryRun) {
-            // same approval gate as a real run, but nothing is executed
-            if (!m_engine->isApproved(actionFingerprint(a))) {
+        if (ctx.approval.isEmpty()) {
+            const QString fp = actionFingerprint(a);
+            if (!m_engine->isApproved(fp)) {
                 m_engine->requestApproval(a, ctx.toolId, ctx.profileId);
                 return ActionResult{false, QStringLiteral("needs approval: ") + describeAction(a), true};
             }
-            return ActionResult{true, QStringLiteral("dry-run"), false};
+            ActionContext approved = ctx;
+            approved.approval = fp;
+            return run(a, approved);
         }
-        return runRisky(a, ctx);
+        // checked at every step: a macro can outlive its approval
+        if (!m_engine->isApproved(ctx.approval))
+            return fail(QStringLiteral("no longer approved: ") + describeAction(a));
+        const bool composite = type == QLatin1String("macro") || type == QLatin1String("if") || type == QLatin1String("value");
+        if (!composite) // the same gate in a dry run, but nothing is executed
+            return ctx.dryRun ? ActionResult{true, QStringLiteral("dry-run"), false} : runRisky(a, ctx);
     }
     if (ctx.dryRun) {
         // Actions with effects outside OpenDial are only logged; tool, profile,
@@ -337,11 +344,13 @@ ActionResult ActionRunner::run(const QJsonObject &a, const ActionContext &ctx)
         return runMacro(a, ctx);
     if (type == QLatin1String("if")) {
         const bool c = evaluate(a.value(QStringLiteral("condition")).toObject(), ctx);
-        const QJsonObject branch = a.value(c ? QStringLiteral("then") : QStringLiteral("else")).toObject();
+        const QString which = c ? QStringLiteral("then") : QStringLiteral("else");
+        const QJsonObject branch = a.value(which).toObject();
         if (branch.isEmpty())
             return okr();
         ActionContext sub = ctx;
         sub.depth++;
+        sub.source = ctx.source.value(which).toObject();
         return run(branch, sub);
     }
     if (type == QLatin1String("osc"))
@@ -395,6 +404,7 @@ ActionResult ActionRunner::runValue(const QJsonObject &a, const ActionContext &c
     ActionContext sub = ctx;
     sub.depth++;
     sub.steps = 1;
+    sub.source = ctx.source.isEmpty() ? out : ctx.source.value(QStringLiteral("output")).toObject();
     return run(resolved, sub);
 }
 
@@ -407,47 +417,52 @@ ActionResult ActionRunner::runMacro(const QJsonObject &a, const ActionContext &c
     ActionContext sub = ctx;
     sub.depth++;
     sub.steps = 1;
-    scheduleMacro(steps, 0, repeat, sub, m_generation);
-    return okr(QStringLiteral("macro started"));
+    const QJsonArray sourceSteps = ctx.source.value(QStringLiteral("steps")).toArray();
+    const QString failure = scheduleMacro(steps, sourceSteps, 0, repeat, sub, m_generation);
+    return failure.isEmpty() ? okr(QStringLiteral("macro started")) : fail(QStringLiteral("macro step failed: ") + failure);
 }
 
-void ActionRunner::scheduleMacro(QJsonArray steps, int index, int repeatLeft, ActionContext ctx, quint64 gen)
+QString ActionRunner::scheduleMacro(QJsonArray steps, QJsonArray sourceSteps, int index, int repeatLeft, ActionContext ctx, quint64 gen)
 {
     // Runs synchronously until the next delay, then continues from a timer.
+    QString failure;
     while (true) {
         if (gen != m_generation)
-            return; // cancelled
+            return failure; // cancelled
         if (index >= steps.size()) {
             if (--repeatLeft <= 0)
-                return;
+                return failure;
             index = 0;
         }
+        ctx.source = sourceSteps.at(index).toObject().value(QStringLiteral("action")).toObject();
         const QJsonObject step = steps.at(index++).toObject();
         if (step.contains(QStringLiteral("delayMs"))) {
             const int ms = qBound(0, step.value(QStringLiteral("delayMs")).toInt(), 10000);
             QPointer<ActionRunner> self(this);
-            QTimer::singleShot(ms, this, [self, steps, index, repeatLeft, ctx, gen] {
-                if (self)
-                    self->scheduleMacro(steps, index, repeatLeft, ctx, gen);
+            QTimer::singleShot(ms, this, [self, steps, sourceSteps, index, repeatLeft, ctx, gen] {
+                if (!self)
+                    return;
+                const QString later = self->scheduleMacro(steps, sourceSteps, index, repeatLeft, ctx, gen);
+                if (!later.isEmpty()) // run() has long returned: report it here
+                    self->m_engine->macroStepFailed(ctx.slot, ctx.toolId, QStringLiteral("macro step failed: ") + later);
             });
-            return;
+            return failure;
         }
         const ActionResult r = run(step.value(QStringLiteral("action")).toObject(), ctx);
-        if (!r.ok)
+        if (!r.ok) {
             qCInfo(lcAction) << "macro step failed:" << r.message;
+            if (failure.isEmpty())
+                failure = r.message.isEmpty() ? describeAction(step.value(QStringLiteral("action")).toObject()) : r.message;
+        }
     }
 }
 
 ActionResult ActionRunner::runRisky(const QJsonObject &a, const ActionContext &ctx)
 {
-    const QString fp = actionFingerprint(a);
-    if (!m_engine->isApproved(fp)) {
-        m_engine->requestApproval(a, ctx.toolId, ctx.profileId);
-        return ActionResult{false, QStringLiteral("needs approval: ") + describeAction(a), true};
-    }
+    // only reached through run(), which checked the approval
     const QString type = str(a, "type");
     if (type == QLatin1String("command")) {
-        const auto r = m_commands->submit({a, ctx.slot, ctx.toolId, ctx.direction != 0});
+        const auto r = m_commands->submit({a, ctx.source.isEmpty() ? a : ctx.source, ctx.approval, ctx.slot, ctx.toolId, ctx.direction != 0});
         return ActionResult{r.ok, r.message, false, r.id};
     }
     if (type == QLatin1String("launch")) {

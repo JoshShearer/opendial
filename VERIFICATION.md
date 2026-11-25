@@ -152,3 +152,24 @@ After:
 
 Same 50-rotation test: peak of 1 process, a click bound to another command ran
 while it was busy, and the merged events ran once more.
+
+## 2026-11-24: commands inside macro, if and value actions (GitHub issue 4)
+
+Simulated input only, in rootless podman containers; no hardware run.
+
+Before the fix (`af5dfac`): approved `macro`, `if` and `value` actions that
+contain a command failed with `unhandled risky action` and started nothing.
+
+After:
+
+| Target | Result |
+|---|---|
+| Arch, Qt 6.12, `-DOPENDIAL_WERROR=ON` | 14/14 suites pass |
+| Ubuntu 24.04, Qt 6.4.2 | 14/14 suites pass |
+| Arch, Debug with ASan + UBSan (leak detection off) | 14/14 suites pass, no reports |
+
+`test_commands` also covers: 12 detents on a `value` whose command takes 2 s
+(peak of 1 process; the merged run used the latest value), revoking a macro
+while it runs, and the same command staying unapproved outside its macro.
+Not run: `dbus`, `launch` and remote `osc` actions inside these, which share
+the approval path.

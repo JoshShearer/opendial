@@ -14,5 +14,7 @@ Smaller decisions:
 | 2026-11-10 | User config never removed on uninstall or purge | SRS §13 |
 | 2026-11-23 | Commands: one process per action fingerprint; `overlap` defaults to coalesce on rotation, queue (4) otherwise | A fast turn must not fork without bound, but deliberate presses should not be lost |
 | 2026-11-23 | `overlap` is optional, so no config version bump | Older files load unchanged and keep their approvals; older versions ignore the field |
+| 2026-11-24 | Approving a `macro`, `if` or `value` action approves the actions inside it, there only (GitHub issue 4) | A `value` command differs at every step, so per-command approval would need one approval per value |
+| 2026-11-24 | Command overlap is keyed by the command before `{value}` is filled in; a merged run uses the latest value | Keyed by the final command, turning a value would start one process per step |
 | 2026-11-10 | Hardware rows stay unverified until physically tested | SRS §17.6 and §17.8 |
 | 2026-11-10 | Treat Hyprland's `[[EMPTY]]` as unset, and retry the keymap with the layout only | Found in E2E: injection failed completely on Hyprland |

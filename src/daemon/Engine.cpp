@@ -391,6 +391,15 @@ void Engine::runSlot(const QString &slotName, int steps, int direction, bool fin
         qCInfo(lcEngine) << "action failed" << slotName << describeAction(action) << r.message;
 }
 
+void Engine::macroStepFailed(const QString &slotName, const QString &toolId, const QString &message)
+{
+    logEvent({{QStringLiteral("kind"), QStringLiteral("macro")}, {QStringLiteral("slot"), slotName}, {QStringLiteral("tool"), toolId},
+              {QStringLiteral("ok"), false}, {QStringLiteral("message"), message}});
+    m_lastCommandId = 0;
+    m_lastActionResult = QStringLiteral("failed: ") + message;
+    scheduleStateChanged();
+}
+
 void Engine::onCommandEvent(const CommandEvent &e)
 {
     QJsonObject le{{QStringLiteral("kind"), QStringLiteral("command")}, {QStringLiteral("id"), double(e.id)},
@@ -411,10 +420,9 @@ void Engine::onCommandEvent(const CommandEvent &e)
     }
     if (e.failed()) {
         // turning the Dial can repeat a failing command many times a second
-        const QString fp = actionFingerprint(e.action);
-        const auto it = m_commandNotified.constFind(fp);
+        const auto it = m_commandNotified.constFind(e.key);
         if (it == m_commandNotified.cend() || m_clock.elapsed() - *it >= kCommandNotifyIntervalMs) {
-            m_commandNotified.insert(fp, m_clock.elapsed());
+            m_commandNotified.insert(e.key, m_clock.elapsed());
             m_notifier->notify(tr("Command failed"), e.message);
         }
     }
@@ -928,7 +936,7 @@ QJsonObject Engine::importProfile(const QJsonObject &doc)
     const auto v = setConfig(cfg, &err);
     QJsonArray riskyOut;
     for (const auto &r : risky)
-        riskyOut.append(QJsonObject{{QStringLiteral("path"), r.first}, {QStringLiteral("description"), describeAction(r.second)},
+        riskyOut.append(QJsonObject{{QStringLiteral("path"), r.first}, {QStringLiteral("description"), describeForApproval(r.second)},
                                     {QStringLiteral("fingerprint"), actionFingerprint(r.second)}});
     return QJsonObject{{QStringLiteral("ok"), v.ok()}, {QStringLiteral("id"), unique}, {QStringLiteral("errors"), QJsonArray::fromStringList(v.errors())},
                        {QStringLiteral("warnings"), QJsonArray::fromStringList(v.warnings())}, {QStringLiteral("riskyActions"), riskyOut}};
@@ -1144,11 +1152,11 @@ void Engine::requestApproval(const QJsonObject &action, const QString &toolId, c
         return;
     m_pending.insert(fp, QJsonObject{{QStringLiteral("fingerprint"), fp},
                                      {QStringLiteral("action"), action},
-                                     {QStringLiteral("description"), describeAction(action)},
+                                     {QStringLiteral("description"), describeForApproval(action)},
                                      {QStringLiteral("toolId"), toolId},
                                      {QStringLiteral("profileId"), profileId}});
     m_notifier->notify(tr("Action needs your approval"),
-                       tr("“%1” runs a program or contacts another service. Open OpenDial → Approvals to allow it.").arg(describeAction(action)), true);
+                       tr("“%1” runs a program or contacts another service. Open OpenDial → Approvals to allow it.").arg(describeForApproval(action).left(200)), true);
     Q_EMIT approvalsChanged();
     scheduleStateChanged();
 }
@@ -1170,7 +1178,7 @@ QJsonArray Engine::pendingApprovals() const
             continue;
         seen.insert(fp);
         out.append(QJsonObject{{QStringLiteral("fingerprint"), fp}, {QStringLiteral("action"), r.second},
-                               {QStringLiteral("description"), describeAction(r.second)}, {QStringLiteral("path"), r.first},
+                               {QStringLiteral("description"), describeForApproval(r.second)}, {QStringLiteral("path"), r.first},
                                {QStringLiteral("approved"), m_approvals.contains(fp)}});
     }
     return out;

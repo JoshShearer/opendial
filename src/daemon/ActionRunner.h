@@ -28,6 +28,9 @@ struct ActionContext {
     int depth = 0;
     bool fine = false;
     bool dryRun = false;    // log instead of touching the system (internal actions still run)
+    // Inside a macro, if or value action:
+    QString approval;       // fingerprint of the approved outer action, which covers everything in it
+    QJsonObject source;     // the action before {value} was filled in; empty = unchanged
 };
 
 struct ActionResult {
@@ -66,7 +69,8 @@ private:
     ActionResult runMacro(const QJsonObject &a, const ActionContext &ctx);
     ActionResult runRisky(const QJsonObject &a, const ActionContext &ctx);
     ActionResult runOsc(const QJsonObject &a);
-    void scheduleMacro(QJsonArray steps, int index, int repeatLeft, ActionContext ctx, quint64 gen);
+    // Returns the first failure before the next delay, empty if there was none.
+    QString scheduleMacro(QJsonArray steps, QJsonArray sourceSteps, int index, int repeatLeft, ActionContext ctx, quint64 gen);
 
     Engine *m_engine;
     InjectorManager *m_inj;
