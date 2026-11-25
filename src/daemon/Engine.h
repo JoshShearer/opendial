@@ -10,6 +10,7 @@
 
 #include <QElapsedTimer>
 #include <QFileSystemWatcher>
+#include <QHash>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
@@ -32,6 +33,7 @@ class Notifier;
 class SessionMonitor;
 class WorkspaceController;
 struct ActionContext;
+struct CommandEvent;
 
 struct EngineOptions {
     bool noDevice = false;      // do not open hardware (tests / simulation)
@@ -146,6 +148,7 @@ private:
     void scheduleGestureTimer();
     void runSlot(const QString &slotName, int steps, int direction, bool fine = false);
     bool toolHasSlot(const QString &slotName) const;
+    void onCommandEvent(const CommandEvent &e);
     void logEvent(const QJsonObject &e);
 
     // menu
@@ -223,6 +226,8 @@ private:
     QJsonObject m_lastGesture;
     QString m_lastActionResult;
     qint64 m_lastActionLatencyUs = 0;
+    quint64 m_lastCommandId = 0;            // command behind m_lastActionResult, 0 = none
+    QHash<QString, qint64> m_commandNotified; // fingerprint -> last failure notification (ms)
     int m_signalsReceived = 0;
 };
 

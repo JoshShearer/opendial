@@ -31,8 +31,8 @@ namespace {
 QString str(const QJsonObject &a, const char *k, const QString &def = {}) { return a.value(QLatin1String(k)).toString(def); }
 double num(const QJsonObject &a, const char *k, double def = 0) { return a.value(QLatin1String(k)).toDouble(def); }
 
-ActionResult okr(const QString &m = {}) { return ActionResult{true, m, false}; }
-ActionResult fail(const QString &m) { return ActionResult{false, m, false}; }
+ActionResult okr(const QString &m = {}) { return ActionResult{true, m}; }
+ActionResult fail(const QString &m) { return ActionResult{false, m}; }
 
 int mouseButton(const QString &name)
 {
@@ -61,8 +61,16 @@ QVariant jsonToDBus(const QJsonValue &v)
 
 ActionRunner::ActionRunner(Engine *engine, InjectorManager *inj, AudioController *audio, MediaController *media,
                            BrightnessController *brightness, WorkspaceController *workspace, QObject *parent)
-    : QObject(parent), m_engine(engine), m_inj(inj), m_audio(audio), m_media(media), m_brightness(brightness), m_workspace(workspace)
+    : QObject(parent), m_engine(engine), m_inj(inj), m_audio(audio), m_media(media), m_brightness(brightness), m_workspace(workspace),
+      m_commands(new CommandRunner([engine](const QJsonObject &action) { return engine->isApproved(actionFingerprint(action)); }, this))
 {
+    connect(m_commands, &CommandRunner::commandEvent, this, &ActionRunner::commandEvent);
+}
+
+void ActionRunner::cancelPending()
+{
+    ++m_generation;
+    m_commands->cancelWaiting();
 }
 
 QJsonValue ActionRunner::substitute(const QJsonValue &v, const QHash<QString, QString> &vars)
@@ -439,31 +447,8 @@ ActionResult ActionRunner::runRisky(const QJsonObject &a, const ActionContext &c
     }
     const QString type = str(a, "type");
     if (type == QLatin1String("command")) {
-        QStringList argv;
-        for (const auto &v : a.value(QStringLiteral("argv")).toArray())
-            argv << v.toString();
-        if (argv.isEmpty())
-            return fail(QStringLiteral("empty argv"));
-        auto *p = new QProcess(this);
-        p->setProgram(argv.first());
-        p->setArguments(argv.mid(1));
-        p->setProcessChannelMode(QProcess::ForwardedErrorChannel);
-        p->setStandardOutputFile(QProcess::nullDevice());
-        const int timeout = qBound(100, a.value(QStringLiteral("timeoutMs")).toInt(10000), 600000);
-        QTimer::singleShot(timeout, p, [p] {
-            if (p->state() != QProcess::NotRunning) {
-                qCWarning(lcAction) << "command timed out, terminating" << p->program();
-                p->terminate();
-                QTimer::singleShot(2000, p, [p] { p->kill(); });
-            }
-        });
-        connect(p, &QProcess::finished, p, &QObject::deleteLater);
-        connect(p, &QProcess::errorOccurred, p, [p](QProcess::ProcessError e) {
-            if (e == QProcess::FailedToStart)
-                p->deleteLater();
-        });
-        p->start();
-        return okr(QStringLiteral("started ") + argv.first());
+        const auto r = m_commands->submit({a, ctx.slot, ctx.toolId, ctx.direction != 0});
+        return ActionResult{r.ok, r.message, false, r.id};
     }
     if (type == QLatin1String("launch")) {
         if (a.contains(QStringLiteral("desktopId"))) {

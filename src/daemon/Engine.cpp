@@ -23,6 +23,7 @@ namespace opendial {
 
 namespace {
 constexpr int kLogSize = 300;
+constexpr qint64 kCommandNotifyIntervalMs = 30000;
 
 QJsonObject obj(const QJsonObject &o, const char *k) { return o.value(QLatin1String(k)).toObject(); }
 
@@ -72,6 +73,7 @@ Engine::Engine(const EngineOptions &opts, QObject *parent) : QObject(parent), m_
     m_context = new ContextManager(this);
     m_device = new DialDevice(this);
     m_runner = new ActionRunner(this, m_inj, m_audio, m_media, m_brightness, m_workspace, this);
+    connect(m_runner, &ActionRunner::commandEvent, this, &Engine::onCommandEvent);
 }
 
 Engine::~Engine()
@@ -373,6 +375,7 @@ void Engine::runSlot(const QString &slotName, int steps, int direction, bool fin
     if (m_suppressed && !ctx.dryRun)
         m_inj->setSuppressed(true);
     m_lastActionLatencyUs = t.nsecsElapsed() / 1000;
+    m_lastCommandId = r.commandId;
     m_lastActionResult = (r.ok ? QStringLiteral("ok") : QStringLiteral("failed")) + (r.message.isEmpty() ? QString() : QStringLiteral(": ") + r.message);
     QJsonObject le{{QStringLiteral("kind"), QStringLiteral("action")}, {QStringLiteral("slot"), slotName},
                    {QStringLiteral("tool"), m_activeToolId}, {QStringLiteral("steps"), steps * (direction ? direction : 1)},
@@ -381,9 +384,40 @@ void Engine::runSlot(const QString &slotName, int steps, int direction, bool fin
                    {QStringLiteral("latencyUs"), double(m_lastActionLatencyUs)}};
     if (!r.message.isEmpty())
         le.insert(QStringLiteral("message"), r.message);
+    if (r.commandId)
+        le.insert(QStringLiteral("commandId"), double(r.commandId));
     logEvent(le);
     if (!r.ok && !r.needsApproval)
         qCInfo(lcEngine) << "action failed" << slotName << describeAction(action) << r.message;
+}
+
+void Engine::onCommandEvent(const CommandEvent &e)
+{
+    QJsonObject le{{QStringLiteral("kind"), QStringLiteral("command")}, {QStringLiteral("id"), double(e.id)},
+                   {QStringLiteral("state"), commandStateName(e.state)}, {QStringLiteral("ok"), e.ok()},
+                   {QStringLiteral("slot"), e.slot}, {QStringLiteral("tool"), e.toolId},
+                   {QStringLiteral("action"), describeAction(e.action)},
+                   {QStringLiteral("actionType"), e.action.value(QStringLiteral("type")).toString()},
+                   {QStringLiteral("message"), e.message}};
+    if (e.state == CommandEvent::State::Finished)
+        le.insert(QStringLiteral("exitCode"), e.exitCode);
+    logEvent(le);
+
+    // A failure is always shown; progress must not hide a newer action's result.
+    if (e.failed() || e.id == m_lastCommandId) {
+        m_lastCommandId = e.id;
+        m_lastActionResult = (e.ok() ? QStringLiteral("ok: ") : QStringLiteral("failed: ")) + e.message;
+        scheduleStateChanged();
+    }
+    if (e.failed()) {
+        // turning the Dial can repeat a failing command many times a second
+        const QString fp = actionFingerprint(e.action);
+        const auto it = m_commandNotified.constFind(fp);
+        if (it == m_commandNotified.cend() || m_clock.elapsed() - *it >= kCommandNotifyIntervalMs) {
+            m_commandNotified.insert(fp, m_clock.elapsed());
+            m_notifier->notify(tr("Command failed"), e.message);
+        }
+    }
 }
 
 void Engine::logEvent(const QJsonObject &e)
@@ -1429,6 +1463,8 @@ QJsonObject Engine::diagnostics(bool redact) const
     d.remove(QStringLiteral("menuTools"));
     if (redact) {
         d.remove(QStringLiteral("variables"));
+        // "ok: <message>": messages can name programs, like the log's above
+        d.insert(QStringLiteral("lastAction"), m_lastActionResult.section(QLatin1Char(':'), 0, 0));
         // Redacted reports get attached to public issues: paths under the home
         // directory would reveal the user name, so they are shown as ~/...
         const QString home = QDir::homePath();

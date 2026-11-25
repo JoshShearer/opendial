@@ -40,7 +40,8 @@ QStringList all();
 //   value       {variable, step, min, max, default, snap?, wrap?, output?:action with {value} placeholders}
 //   osc         {host, port, address, args:[...]}  (dangerous unless loopback)
 //   launch      {desktopId?|url?|path?}             (dangerous)
-//   command     {argv:[...], timeoutMs?}             (dangerous)
+//   command     {argv:[...], timeoutMs?, overlap?:"coalesce|reject|queue"} (dangerous)
+//               overlap = what to do while it still runs; default: coalesce on rotation, else queue
 //   dbus        {bus?, service, path, interface, method, args?} (dangerous)
 //   macro       {steps:[{action:{...}}|{delayMs:n}], repeat?:int}
 //   if          {condition:{appId?:[..], variable?, op?, value?}, then:{..}, else?:{..}}

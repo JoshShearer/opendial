@@ -27,6 +27,12 @@ permissions check.
 - Which backend is in use: `opendialctl status`, or *Integrations → Injection*.
 - **Last resort:** uinput. See the threat model (T7) before enabling it.
 
+## A command action does nothing
+
+- `opendialctl status` shows the last outcome under `lastAction`: `failed to start` (program not found or not executable), `finished with exit code N`, `was killed by a signal` or `timed out` (default 10 s, `timeoutMs`). Failures are also notified and logged to the journal.
+- `opendialctl diagnose --no-redact` lists every step in `eventLog` (`kind: command`). An action's `commandId` matches the `id` of its outcomes.
+- Only one process per command action runs at a time. `overlap` decides what happens to requests that arrive meanwhile: `coalesce` (merged into one further run, the default for turning), `queue` (up to four wait, the default for presses) or `reject`.
+
 ## Per-app profiles don't switch
 
 - Dashboard → *Profile* shows the focused app ID and why a profile matched. If the app ID is `(unknown)`, your desktop gives OpenDial no focus information:

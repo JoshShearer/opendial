@@ -417,6 +417,20 @@ ColumnLayout {
                 ToolTip.visible: activeFocus
                 ToolTip.text: qsTr("Arguments as a JSON list, no shell: [\"notify-send\", \"Hello\"]")
             }
+            RowLayout {
+                Label { text: qsTr("If it is still running") }
+                ComboBox {
+                    Layout.preferredWidth: 230
+                    // "" = not set: the default depends on the gesture
+                    model: [{ v: "", t: qsTr("Automatic") }, { v: "coalesce", t: qsTr("Run once more afterwards") },
+                            { v: "queue", t: qsTr("Wait in line (up to 4)") }, { v: "reject", t: qsTr("Ignore the new request") }]
+                    textRole: "t"; valueRole: "v"
+                    currentIndex: Math.max(0, ["", "coalesce", "queue", "reject"].indexOf(ed.action.overlap || ""))
+                    onActivated: currentValue === "" ? backend.remove(ed.path + ".overlap") : ed.setField("overlap", currentValue)
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Automatic: turning the Dial runs it once more afterwards, presses wait in line. Changing this needs a new approval.")
+                }
+            }
             Label {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
