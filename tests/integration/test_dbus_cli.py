@@ -92,6 +92,21 @@ try:
     octl("tool", "volume")
     octl("simulate", "rotate", "30")
     time.sleep(0.3)
+    cfg = jctl("config", "get")
+    cfg["profiles"][0]["tools"] += [{"id": "secret", "name": "Secret", "bindings": {
+        "click": {"type": "command", "argv": ["true", "secret-pending"]},
+        "double_click": {"type": "command", "argv": ["true", "secret-approved"]},
+        "long_press": {"type": "launch", "url": "https://example.org/secret-url"}}}]
+    new_cfg = os.path.join(tmp.name, "secret.json")
+    with open(new_cfg, "w") as f:
+        json.dump(cfg, f)
+    check("config with commands accepted", octl("config", "set", new_cfg).returncode == 0)
+    for a in jctl("approvals"):
+        if "secret-approved" in json.dumps(a["action"]):
+            octl("approve", a["fingerprint"])
+    octl("tool", "secret")
+    octl("simulate", "click")
+    time.sleep(0.6)
     diag = os.path.join(tmp.name, "diag.json")
     check("diagnostics export", octl("diagnose", "--out", diag).returncode == 0 and os.path.exists(diag))
     if os.path.exists(diag):
@@ -100,6 +115,15 @@ try:
             report = json.load(f)
         acts = [e for e in report.get("eventLog", []) if "action" in e]
         check("redacted log keeps only action types", bool(acts) and all(e["action"] == e.get("actionType") for e in acts), str(acts[:3]))
+        ap = report.get("approvals", [])
+        check("redacted approvals keep the action type and state",
+              sorted((str(e.get("action")), str(e.get("approved"))) for e in ap) == [("command", "False"), ("command", "True"), ("launch", "False")], str(ap))
+        text = json.dumps(report)
+        fps = [e["fingerprint"] for e in jctl("approvals")]
+        check("redacted report hides commands and URLs", "secret-" not in text, text[max(0, text.find("secret-") - 200):][:300])
+        check("redacted report hides action fingerprints", len(fps) == 3 and not any(fp in text for fp in fps))
+        full = json.dumps(jctl("diagnose", "--no-redact"))
+        check("full report keeps approval details", all(x in full for x in ("secret-pending", "secret-approved", "secret-url")))
     check("diagnostics outside home refused", octl("diagnose", "--out", "/etc/opendial-diag.json", expect=1).returncode == 1)
     check("diagnostics '..' escape refused", octl("diagnose", "--out", "/tmp/../etc/opendial-diag.json", expect=1).returncode == 1)
 

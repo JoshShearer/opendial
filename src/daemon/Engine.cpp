@@ -1469,7 +1469,23 @@ QJsonObject Engine::diagnostics(bool redact) const
         {QStringLiteral("kernel"), QSysInfo::kernelVersion()},
         {QStringLiteral("os"), QSysInfo::prettyProductName()},
     });
-    d.insert(QStringLiteral("approvals"), pendingApprovals());
+    QJsonArray approvals;
+    for (const auto &v : pendingApprovals()) {
+        const QJsonObject a = v.toObject();
+        if (!redact) {
+            approvals.append(a);
+            continue;
+        }
+        // Listed one by one, so a field added later is not exported by accident.
+        // No fingerprint: it would let someone confirm a guessed command.
+        QJsonObject kept{{QStringLiteral("action"), a.value(QStringLiteral("action")).toObject().value(QStringLiteral("type"))},
+                         {QStringLiteral("approved"), a.value(QStringLiteral("approved")).toBool()}};
+        for (const auto &k : {QStringLiteral("path"), QStringLiteral("toolId"), QStringLiteral("profileId")})
+            if (a.contains(k))
+                kept.insert(k, a.value(k));
+        approvals.append(kept);
+    }
+    d.insert(QStringLiteral("approvals"), approvals);
     d.insert(QStringLiteral("redacted"), redact);
     d.remove(QStringLiteral("menuTools"));
     if (redact) {
