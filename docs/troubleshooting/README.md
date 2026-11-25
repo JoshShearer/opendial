@@ -31,7 +31,8 @@ permissions check.
 
 - `opendialctl status` shows the last outcome under `lastAction`: `failed to start` (program not found or not executable), `finished with exit code N`, `was killed by a signal` or `timed out` (default 10 s, `timeoutMs`). Failures are also notified and logged to the journal.
 - `opendialctl diagnose --no-redact` lists every step in `eventLog` (`kind: command`). An action's `commandId` matches the `id` of its outcomes.
-- Only one process per command action runs at a time. `overlap` decides what happens to requests that arrive meanwhile: `coalesce` (merged into one further run, the default for turning), `queue` (up to four wait, the default for presses) or `reject`.
+- Only one process per command action runs at a time. `overlap` decides what happens to requests that arrive meanwhile: `coalesce` (merged into one further run, the default for turning), `queue` (up to four wait, the default for presses) or `reject`. A macro that repeats the same command more than five times without delays goes over the queue limit; the rest are refused.
+- A macro, `if` or `value` action that contains a command is approved as a whole. Editing any part of it needs a new approval.
 
 ## Per-app profiles don't switch
 

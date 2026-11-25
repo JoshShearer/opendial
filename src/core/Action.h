@@ -64,8 +64,13 @@ enum class Risk { Safe, NeedsApproval };
 Risk actionRisk(const QJsonObject &action);
 // Stable SHA-256 fingerprint of an action's canonical JSON (approval key).
 QString actionFingerprint(const QJsonObject &action);
+// argv of a "command" action. An entry that is just "{value}" is a number once
+// substituted.
+QStringList commandArgv(const QJsonObject &action);
 // Human summary for UI, e.g. "Key Ctrl+Z", "Volume +2%".
 QString describeAction(const QJsonObject &action);
+// What an approval covers: every risky action inside, command lines in full.
+QString describeForApproval(const QJsonObject &action);
 // Collect every action needing approval within a tool/profile/config tree.
 void collectRiskyActions(const QJsonValue &tree, const QString &path, QList<QPair<QString, QJsonObject>> &out);
 

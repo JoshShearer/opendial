@@ -98,6 +98,8 @@ public:
     bool isApproved(const QString &fingerprint) const { return m_approvals.contains(fingerprint); }
     void requestApproval(const QJsonObject &action, const QString &toolId, const QString &profileId);
     QJsonArray pendingApprovals() const;
+    // A step after a macro's first delay failed.
+    void macroStepFailed(const QString &slotName, const QString &toolId, const QString &message);
     bool approve(const QString &fingerprint);
     bool revokeApproval(const QString &fingerprint);
 
@@ -227,7 +229,7 @@ private:
     QString m_lastActionResult;
     qint64 m_lastActionLatencyUs = 0;
     quint64 m_lastCommandId = 0;            // command behind m_lastActionResult, 0 = none
-    QHash<QString, qint64> m_commandNotified; // fingerprint -> last failure notification (ms)
+    QHash<QString, qint64> m_commandNotified; // CommandEvent::key -> last failure notification (ms)
     int m_signalsReceived = 0;
 };
 

@@ -245,6 +245,14 @@ Risk actionRisk(const QJsonObject &a)
     return Risk::Safe;
 }
 
+QStringList commandArgv(const QJsonObject &a)
+{
+    QStringList argv;
+    for (const auto &v : a.value(QLatin1String("argv")).toArray())
+        argv << (v.isDouble() ? QString::number(v.toDouble(), 'g', 10) : v.toString());
+    return argv;
+}
+
 QString actionFingerprint(const QJsonObject &a)
 {
     // QJsonDocument serialises object keys in sorted order: canonical form.
@@ -284,18 +292,50 @@ QString describeAction(const QJsonObject &a)
     if (t == QLatin1String("osc")) return QStringLiteral("OSC %1").arg(str(a, "address"));
     if (t == QLatin1String("launch"))
         return QStringLiteral("Open %1").arg(!str(a, "desktopId").isEmpty() ? str(a, "desktopId") : !str(a, "url").isEmpty() ? str(a, "url") : str(a, "path"));
-    if (t == QLatin1String("command")) {
-        QStringList argv;
-        for (const auto &v : a.value(QLatin1String("argv")).toArray())
-            argv << v.toString();
-        return QStringLiteral("Run %1").arg(argv.join(QLatin1Char(' ')).left(60));
-    }
+    if (t == QLatin1String("command"))
+        return QStringLiteral("Run %1").arg(commandArgv(a).join(QLatin1Char(' ')).left(60));
     if (t == QLatin1String("dbus")) return QStringLiteral("D-Bus %1.%2").arg(str(a, "interface"), str(a, "method"));
     if (t == QLatin1String("macro")) return QStringLiteral("Macro (%1 steps)").arg(a.value(QLatin1String("steps")).toArray().size());
     if (t == QLatin1String("if")) return QStringLiteral("Conditional");
     if (t == QLatin1String("plugin")) return QStringLiteral("Plugin %1").arg(str(a, "appId"));
     if (t == QLatin1String("osd")) return QStringLiteral("Show \"%1\"").arg(str(a, "text").left(30));
     return t;
+}
+
+QString describeForApproval(const QJsonObject &a)
+{
+    const QString t = str(a, "type");
+    const auto risky = [](const QJsonObject &o) { return actionRisk(o) == Risk::NeedsApproval; };
+    if (t == QLatin1String("command"))
+        return QStringLiteral("Run ") + commandArgv(a).join(QLatin1Char(' '));
+    if (!risky(a))
+        return describeAction(a);
+    if (t == QLatin1String("value"))
+        return QStringLiteral("Value ") + str(a, "variable")
+            + QStringLiteral(" (%1 to %2): ").arg(a.value(QLatin1String("min")).toDouble(0)).arg(a.value(QLatin1String("max")).toDouble(100))
+            + describeForApproval(a.value(QLatin1String("output")).toObject());
+    if (t == QLatin1String("if")) {
+        const QJsonObject yes = a.value(QLatin1String("then")).toObject(), no = a.value(QLatin1String("else")).toObject();
+        QStringList parts;
+        if (risky(yes))
+            parts << describeForApproval(yes);
+        if (risky(no))
+            parts << QStringLiteral("otherwise ") + describeForApproval(no);
+        return QStringLiteral("Conditional: ") + parts.join(QStringLiteral("; "));
+    }
+    if (t == QLatin1String("macro")) {
+        const QJsonArray steps = a.value(QLatin1String("steps")).toArray();
+        const int repeat = a.value(QLatin1String("repeat")).toInt(1);
+        QStringList parts;
+        for (const auto &s : steps) {
+            const QJsonObject step = s.toObject().value(QLatin1String("action")).toObject();
+            if (risky(step))
+                parts << describeForApproval(step);
+        }
+        return QStringLiteral("Macro (%1 steps").arg(steps.size()) + (repeat > 1 ? QStringLiteral(", %1 times): ").arg(repeat) : QStringLiteral("): "))
+            + parts.join(QStringLiteral("; "));
+    }
+    return describeAction(a);
 }
 
 void collectRiskyActions(const QJsonValue &tree, const QString &path, QList<QPair<QString, QJsonObject>> &out)

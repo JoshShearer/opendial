@@ -3,7 +3,6 @@
 
 #include "Action.h"
 
-#include <QJsonArray>
 #include <QLoggingCategory>
 #include <QProcess>
 #include <QTimer>
@@ -14,16 +13,13 @@ Q_LOGGING_CATEGORY(lcCommand, "opendial.command")
 namespace opendial {
 
 namespace {
-QStringList argvOf(const QJsonObject &action)
+QString keyOf(const CommandRunner::Request &r)
 {
-    QStringList argv;
-    for (const auto &v : action.value(QStringLiteral("argv")).toArray())
-        argv << v.toString();
-    return argv;
+    return r.approval + QLatin1Char(':') + actionFingerprint(r.source);
 }
 QString label(quint64 id, const QJsonObject &action)
 {
-    return QStringLiteral("command #%1 (%2)").arg(QString::number(id), argvOf(action).value(0));
+    return QStringLiteral("command #%1 (%2)").arg(QString::number(id), commandArgv(action).value(0));
 }
 } // namespace
 
@@ -41,16 +37,16 @@ QString commandStateName(CommandEvent::State s)
     return {};
 }
 
-CommandRunner::CommandRunner(std::function<bool(const QJsonObject &)> mayStart, QObject *parent)
-    : QObject(parent), m_mayStart(std::move(mayStart))
+CommandRunner::CommandRunner(std::function<bool(const QString &)> isApproved, QObject *parent)
+    : QObject(parent), m_isApproved(std::move(isApproved))
 {
 }
 
 CommandRunner::Reply CommandRunner::submit(const Request &r)
 {
-    if (argvOf(r.action).value(0).isEmpty())
+    if (commandArgv(r.action).value(0).isEmpty())
         return {false, 0, QStringLiteral("empty argv")};
-    const QString key = actionFingerprint(r.action);
+    const QString key = keyOf(r);
     auto lane = m_lanes.find(key);
     if (lane == m_lanes.end()) {
         const Invocation inv{++m_lastId, r};
@@ -65,6 +61,7 @@ CommandRunner::Reply CommandRunner::submit(const Request &r)
     if (policy == QLatin1String("reject"))
         return {false, 0, busy};
     if (policy == QLatin1String("coalesce") && !lane->waiting.isEmpty()) {
+        lane->waiting.last().req = r; // the same command, but a newer {value}
         const quint64 id = lane->waiting.constLast().id;
         return {true, id, busy + QStringLiteral(", merged into #%1").arg(id)};
     }
@@ -91,7 +88,7 @@ void CommandRunner::start(const QString &key, const Invocation &inv)
     lane.running = inv;
     lane.timedOut = false;
 
-    const QStringList argv = argvOf(inv.req.action);
+    const QStringList argv = commandArgv(inv.req.action);
     auto *p = new QProcess(this);
     p->setProgram(argv.first());
     p->setArguments(argv.mid(1));
@@ -134,7 +131,7 @@ void CommandRunner::finish(const QString &key, CommandEvent::State s, int exitCo
     QList<Invocation> waiting = lane.waiting;
     while (!waiting.isEmpty()) {
         const Invocation next = waiting.takeFirst();
-        if (!m_mayStart(next.req.action)) {
+        if (!m_isApproved(next.req.approval)) {
             report(next, CommandEvent::State::Cancelled, QStringLiteral("cancelled: no longer approved"));
             continue;
         }
@@ -154,6 +151,7 @@ void CommandRunner::report(const Invocation &inv, CommandEvent::State s, const Q
     e.action = inv.req.action;
     e.slot = inv.req.slot;
     e.toolId = inv.req.toolId;
+    e.key = keyOf(inv.req);
     if (e.failed())
         qCWarning(lcCommand).noquote() << e.message;
     else

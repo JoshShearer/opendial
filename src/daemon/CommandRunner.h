@@ -22,6 +22,7 @@ struct CommandEvent {
     QJsonObject action;
     QString slot;
     QString toolId;
+    QString key;         // same for every invocation of one configured command
 
     // The command ran into trouble (as opposed to being dropped on purpose).
     bool failed() const
@@ -34,9 +35,10 @@ struct CommandEvent {
 QString commandStateName(CommandEvent::State s);
 
 // Owns the processes of "command" actions. One process runs at a time per
-// action fingerprint; requests that arrive meanwhile follow the action's
+// configured command (as written in the config, before {value} is filled in, and
+// per approval that covers it); requests that arrive meanwhile follow the action's
 // "overlap" policy:
-//   coalesce  merge into a single further run (default for rotation)
+//   coalesce  merge into a single further run of the latest request (default for rotation)
 //   reject    refuse
 //   queue     wait in line, at most kMaxWaiting (default for everything else)
 class CommandRunner : public QObject {
@@ -46,6 +48,8 @@ public:
 
     struct Request {
         QJsonObject action;
+        QJsonObject source; // the action before {value} was filled in
+        QString approval;   // fingerprint of the approved action this belongs to
         QString slot;
         QString toolId;
         bool rotation = false;
@@ -56,9 +60,9 @@ public:
         QString message;
     };
 
-    // mayStart is asked again before a waiting command starts: its approval may
-    // have been withdrawn in the meantime.
-    explicit CommandRunner(std::function<bool(const QJsonObject &action)> mayStart, QObject *parent = nullptr);
+    // isApproved is asked again before a waiting command starts: its approval
+    // may have been withdrawn in the meantime.
+    explicit CommandRunner(std::function<bool(const QString &approval)> isApproved, QObject *parent = nullptr);
 
     Reply submit(const Request &r);
     // Drop waiting commands. A running one is left alone.
@@ -72,7 +76,7 @@ private:
         quint64 id = 0;
         Request req;
     };
-    struct Lane { // per action fingerprint
+    struct Lane { // per key
         Invocation running;
         QList<Invocation> waiting;
         bool timedOut = false;
@@ -82,7 +86,7 @@ private:
     void finish(const QString &key, CommandEvent::State s, int exitCode, const QString &detail);
     void report(const Invocation &inv, CommandEvent::State s, const QString &what, int exitCode = 0);
 
-    std::function<bool(const QJsonObject &)> m_mayStart;
+    std::function<bool(const QString &)> m_isApproved;
     QHash<QString, Lane> m_lanes; // a lane exists while its command runs
     quint64 m_lastId = 0;
 };
