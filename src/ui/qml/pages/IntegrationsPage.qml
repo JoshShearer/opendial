@@ -150,8 +150,9 @@ ScrollView {
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 0
-                            Label { text: modelData.description; font.weight: Font.DemiBold; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-                            Label { text: JSON.stringify(modelData.action); opacity: 0.6; font.pixelSize: 11; font.family: "monospace"; elide: Text.ElideRight; Layout.fillWidth: true }
+                            // plain text: both can come from an imported profile
+                            Label { text: modelData.description; textFormat: Text.PlainText; font.weight: Font.DemiBold; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                            Label { text: JSON.stringify(modelData.action).replace(/[^\x20-\x7e]/g, c => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")); textFormat: Text.PlainText; opacity: 0.6; font.pixelSize: 11; font.family: "monospace"; elide: Text.ElideRight; Layout.fillWidth: true }
                         }
                         StatusPill { state: modelData.approved ? "ok" : "warn"; text: modelData.approved ? qsTr("Allowed") : qsTr("Waiting") }
                         Button {

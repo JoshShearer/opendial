@@ -114,6 +114,7 @@ TOOLS = {
     "vfail": {"rotate_cw": value("vfail.x", command(["/nonexistent/value-test", "{value}"]))},
     "inner": {"click": command(touch_cmd("m1", 0))},  # same command as in "macro", not approved itself
     "unapproved": {"click": macro(command(touch_cmd("unapproved", 0)))},
+    "hostile": {"click": command(["true", "<b>bold</b>&amp;", "\x1b[2J\u202etxt"])},
     "mrevoke": {"click": macro(command(touch_cmd("before", 0)), 1500, command(touch_cmd("after", 0)))},
     "mwait": {"click": macro(command(touch_cmd("mwait", 2)), command(touch_cmd("mwait", 2)))},
     "mfull": {"click": macro(command(touch_cmd("mfull", 0.2)), repeat=10)},
@@ -121,7 +122,7 @@ TOOLS = {
 }
 
 
-NOT_APPROVED = [TOOLS["inner"]["click"], TOOLS["unapproved"]["click"]]
+NOT_APPROVED = [TOOLS["inner"]["click"], TOOLS["unapproved"]["click"], TOOLS["hostile"]["click"]]
 
 
 def outcomes(tool):  # each tool is exercised once
@@ -341,6 +342,15 @@ try:
     check("approval request shows the command inside", bool(desc) and "echo unapproved" in desc[0], str(desc))
     if monitor:
         check("approval notification shows the command inside", wait_for(lambda: notified("echo unapproved") >= 1))
+
+    use("hostile")
+    click()
+    time.sleep(0.3)
+    listing = octl("approvals").stdout
+    check("approval listing has no terminal escapes", "\x1b" not in listing and "\u202e" not in listing and "\\u001b[2J\\u202etxt" in listing,
+          repr(listing[-300:]))
+    if monitor:
+        check("approval notification has no markup", wait_for(lambda: notified("&lt;b&gt;bold&lt;/b&gt;&amp;amp;") >= 1) and notified("<b>bold") == 0)
 
     use("inner")
     click()

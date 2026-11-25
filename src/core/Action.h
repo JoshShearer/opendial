@@ -71,6 +71,9 @@ QStringList commandArgv(const QJsonObject &action);
 QString describeAction(const QJsonObject &action);
 // What an approval covers: every risky action inside, command lines in full.
 QString describeForApproval(const QJsonObject &action);
+// Text with control, formatting (bidi) and other invisible characters written as
+// \uXXXX, for terminals and approval requests.
+QString visibleText(const QString &s);
 // Collect every action needing approval within a tool/profile/config tree.
 void collectRiskyActions(const QJsonValue &tree, const QString &path, QList<QPair<QString, QJsonObject>> &out);
 

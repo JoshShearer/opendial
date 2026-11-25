@@ -420,9 +420,12 @@ void Notifier::notify(const QString &summary, const QString &body, bool importan
 {
     if (!m_enabled || (m_quiet && !important))
         return;
+    // servers may render the body as markup, and it can quote a command line
+    QString text = body;
+    text.replace(QLatin1Char('&'), QStringLiteral("&amp;")).replace(QLatin1Char('<'), QStringLiteral("&lt;")).replace(QLatin1Char('>'), QStringLiteral("&gt;"));
     QDBusMessage m = QDBusMessage::createMethodCall(QStringLiteral("org.freedesktop.Notifications"), QStringLiteral("/org/freedesktop/Notifications"),
                                                     QStringLiteral("org.freedesktop.Notifications"), QStringLiteral("Notify"));
-    m << QStringLiteral("OpenDial") << m_lastId << icon << summary << body << QStringList() << QVariantMap{{QStringLiteral("urgency"), QVariant::fromValue(uchar(important ? 2 : 1))}}
+    m << QStringLiteral("OpenDial") << m_lastId << icon << summary << text << QStringList() << QVariantMap{{QStringLiteral("urgency"), QVariant::fromValue(uchar(important ? 2 : 1))}}
       << int(important ? -1 : 4000);
     QDBusConnection::sessionBus().asyncCall(m);
 }

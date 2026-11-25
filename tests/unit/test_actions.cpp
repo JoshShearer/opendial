@@ -108,11 +108,38 @@ private Q_SLOTS:
                  QStringLiteral("Value v (0 to 100): ") + run); // the defaults runValue() uses
         const QJsonObject open{{"type", "launch"}, {"url", "https://a"}};
         const QJsonObject cond{{"type", "if"}, {"condition", QJsonObject()}, {"then", cmd}, {"else", open}};
-        QCOMPARE(describeForApproval(cond), QStringLiteral("Conditional: ") + run + QStringLiteral("; otherwise Open https://a"));
+        QCOMPARE(describeForApproval(cond), QStringLiteral("Conditional: ") + run + QStringLiteral("; otherwise Open URL https://a"));
         const QJsonObject key{{"type", "key"}, {"keys", "a"}};
         QCOMPARE(describeForApproval({{"type", "macro"}, {"repeat", 3},
                                       {"steps", QJsonArray{QJsonObject{{"action", key}}, QJsonObject{{"delayMs", 5}}, QJsonObject{{"action", cond}}, QJsonObject{{"action", open}}}}}),
-                 QStringLiteral("Macro (4 steps, 3 times): Conditional: ") + run + QStringLiteral("; otherwise Open https://a; Open https://a"));
+                 QStringLiteral("Macro (4 steps, 3 times): Conditional: ") + run + QStringLiteral("; otherwise Open URL https://a; Open URL https://a"));
+    }
+
+    // Nothing in an approval request may be hidden, ambiguous or rendered.
+    void describeApprovalIsComplete()
+    {
+        const auto run = [](const QJsonArray &argv) { return describeForApproval({{"type", "command"}, {"argv", argv}}); };
+        QCOMPARE(run({"a", "b c"}), QStringLiteral("Run a \"b c\""));
+        QVERIFY(run({"a", "b c"}) != run({"a", "b", "c"}));
+        QCOMPARE(run({"a", ""}), QStringLiteral("Run a \"\""));
+        QCOMPARE(run({"a", "q\"\\"}), QStringLiteral("Run a \"q\\\"\\\\\""));
+        QCOMPARE(run({"a", "x\n\x1b[2J"}), QStringLiteral("Run a \"x\\u000a\\u001b[2J\""));
+        QCOMPARE(run({"a", QString(QChar(0x202e)) + QStringLiteral("b")}), QStringLiteral("Run a \"\\u202eb\""));
+        QCOMPARE(run({"a", QString(QChar(0x9b))}), QStringLiteral("Run a \"\\u009b\""));
+        QCOMPARE(run({"a", QString::fromUtf8("\xF3\xA0\x81\x81")}), QStringLiteral("Run a \"\\udb40\\udc41\"")); // tag character
+        QCOMPARE(run({"a", QString::fromUtf8("\xC3\xA9")}), QString::fromUtf8("Run a \"\xC3\xA9\"")); // plain letters stay readable
+        QCOMPARE(visibleText(QStringLiteral("a\x1b") + QChar(0x2066)), QStringLiteral("a\\u001b\\u2066"));
+
+        QCOMPARE(describeForApproval({{"type", "dbus"}, {"bus", "system"}, {"service", "org.s"}, {"path", "/p"}, {"interface", "org.i"}, {"method", "M"},
+                                      {"args", QJsonArray{"x", 1}}}),
+                 QStringLiteral("D-Bus system org.s /p org.i.M [\"x\",1]"));
+        QCOMPARE(describeForApproval({{"type", "dbus"}, {"service", "org.s"}, {"path", "/p"}, {"interface", "org.i"}, {"method", "M"}}),
+                 QStringLiteral("D-Bus session org.s /p org.i.M []"));
+        QCOMPARE(describeForApproval({{"type", "osc"}, {"host", "10.0.0.5"}, {"port", 9001}, {"address", "/a"}, {"args", QJsonArray{0.5}}}),
+                 QStringLiteral("OSC 10.0.0.5:9001 /a [0.5]"));
+        QCOMPARE(describeForApproval({{"type", "launch"}, {"desktopId", "x.desktop"}}), QStringLiteral("Open app x.desktop"));
+        QCOMPARE(describeForApproval({{"type", "launch"}, {"path", "/tmp/a b"}}), QStringLiteral("Open file \"/tmp/a b\""));
+        QCOMPARE(describeForApproval({{"type", "launch"}, {"url", "https://a/\x1b"}}), QStringLiteral("Open URL \"https://a/\\u001b\""));
     }
 
     void describe()

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // opendialctl: command-line control and diagnostics for OpenDial.
+#include "Action.h"
 #include "Config.h"
 
 #include <QCoreApplication>
@@ -592,7 +593,8 @@ int main(int argc, char **argv)
         for (const auto &v : arr) {
             const auto o = v.toObject();
             out << (o.value(QStringLiteral("approved")).toBool() ? "[approved] " : "[pending]  ") << o.value(QStringLiteral("fingerprint")).toString().left(16)
-                << "  " << o.value(QStringLiteral("description")).toString() << "  (" << o.value(QStringLiteral("path")).toString(o.value(QStringLiteral("toolId")).toString()) << ")\n";
+                << "  " << visibleText(o.value(QStringLiteral("description")).toString())
+                << "  (" << visibleText(o.value(QStringLiteral("path")).toString(o.value(QStringLiteral("toolId")).toString())) << ")\n";
         }
         out << "approve with: opendialctl approve <fingerprint prefix>\n";
         out.flush();
